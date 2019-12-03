@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Type.BigInteger;
 
 namespace RSA
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
+            var big = new BigInteger("999");
+            Console.WriteLine(string.Join("\n", big.Clusters));
         }
     }
 }
