@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace RSA
+namespace Type.BigInteger
 {
     public class BigInteger
     {
-        long[] Clusters { get; }
-        bool IsNegative { get; }
-        long Size { get; }
+        public long[] Clusters { get; }
+        public bool IsNegative { get; }
+        public long Size { get; }
 
         public BigInteger(string bigInteger)
         {
@@ -17,36 +17,37 @@ namespace RSA
             }
 
             Size = bigInteger.Length;
-            Clusters = new long[(bigInteger.Length / 18) + 1];
-            int zeroes = 18 - (bigInteger.Length % 18);
+            Clusters = new long[bigInteger.Length / 18 + 1];
+            var zeroes = 18 - bigInteger.Length % 18;
             bigInteger = new string('0', zeroes) + bigInteger;
 
-            int numberIndex = 0;
-            for (int i = bigInteger.Length - 18; i >= 0; i -= 18)
+            var numberIndex = 0;
+            for (var i = bigInteger.Length - 18; i >= 0; i -= 18)
             {
                 Clusters[numberIndex] = long.Parse(bigInteger.Substring(i, 18));
                 numberIndex++;
             }
         }
 
-        BigInteger Add(BigInteger other)
+        public BigInteger Add(BigInteger other)
         {
             throw new NotImplementedException();
         }
 
-        BigInteger Subtract(BigInteger other)
+        public BigInteger Subtract(BigInteger other)
         {
             throw new NotImplementedException();
         }
 
-        BigInteger Mutiply(BigInteger other)
+        public BigInteger Multiply(BigInteger other)
         {
             throw new NotImplementedException();
         }
 
-        BigInteger Divide(BigInteger other)
+        public BigInteger Divide(BigInteger other)
         {
             throw new NotImplementedException();
         }
     }
+
 }
