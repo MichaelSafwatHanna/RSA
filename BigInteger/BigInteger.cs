@@ -94,6 +94,33 @@ namespace Type.BigInteger
 
             return (IsNegative ? "-" : "") + Clusters[ClustersLength - 1] + str;
         }
+
+        private bool Equals(BigInteger other)
+        {
+            if (ClustersLength != other.ClustersLength) return false;
+            for (var i = 0; i < ClustersLength; i++)
+            {
+                if (Clusters[i] != other.Clusters[i]) return false;
+            }
+            return IsNegative == other.IsNegative && Size == other.Size;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            return obj.GetType() == GetType() && Equals((BigInteger)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = IsNegative.GetHashCode();
+                hashCode = (hashCode * 397) ^ (Clusters != null ? Clusters.GetHashCode() : 0);
+                return hashCode;
+            }
+        }
     }
 
 }
