@@ -1,0 +1,21 @@
+name: BigInteger Unit Testing
+
+on:
+  push:
+    paths:
+    - 'BigInteger/**'
+    - 'BigInteger.Tests/**'
+
+jobs:
+  test:
+    name: Test BigInteger
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 2.1.509
+    - name: Run Unit Tests
+      run: dotnet test BigInteger.Tests
