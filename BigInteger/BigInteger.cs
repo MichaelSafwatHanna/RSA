@@ -7,10 +7,10 @@ namespace Type.BigInteger
         private const int ClusterSize = 18;
         private const long MaxClusterValue = (long)1E18;
 
-        public bool IsNegative { get; }
-        public int Size { get; set; }
-        public int ClustersLength { get; set; }
-        public ulong[] Clusters { get; }
+        private bool IsNegative { get; }
+        public int Size { get; private set; }
+        public int ClustersLength { get; private set; }
+        private ulong[] Clusters { get; }
 
         public BigInteger(string input)
         {
@@ -32,7 +32,7 @@ namespace Type.BigInteger
             if (remainder != 0) Clusters[clusterIndex] = Convert.ToUInt64(input.Substring(offset, remainder));
         }
 
-        public BigInteger(int clustersLength)
+        private BigInteger(int clustersLength)
         {
             Size = clustersLength * ClusterSize;
             ClustersLength = clustersLength;
@@ -54,17 +54,18 @@ namespace Type.BigInteger
                 result.Clusters[i] = sum % MaxClusterValue;
             }
 
-            if (carry == 1)
+            result.Clusters[result.ClustersLength - 1] = (ulong)carry;
+
+            if (carry == 0)
             {
-                result.Clusters[result.ClustersLength - 1] = (ulong)carry;
-                result.Size -= ClusterSize - 1;
-            }
-            else
-            {
+                // Remove Last Cluster
                 result.ClustersLength--;
-                var lastClusterLength = result.Clusters[result.ClustersLength - 1].ToString().Length;
-                result.Size -= 2 * ClusterSize - lastClusterLength;
+                result.Size -= ClusterSize;
             }
+
+            // Adjust Size
+            var lastClusterLength = result.Clusters[result.ClustersLength - 1].ToString().Length;
+            result.Size -= ClusterSize - lastClusterLength;
 
             return result;
         }
