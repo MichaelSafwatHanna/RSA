@@ -79,7 +79,7 @@ namespace Type.BigInteger
             throw new NotImplementedException();
         }
 
-        public BigInteger Divide(BigInteger other)
+        public void Divide(BigInteger other, out BigInteger quotient, out BigInteger remainder)
         {
             throw new NotImplementedException();
         }

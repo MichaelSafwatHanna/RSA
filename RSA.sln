@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RSA", "RSA\RSA.csproj", "{A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BigInteger", "BigInteger\BigInteger.csproj", "{FA7AFA7E-3EA3-49D4-9028-8A3E4075F4D2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BigInteger.Tests", "BigInteger.Tests\BigInteger.Tests.csproj", "{48E51DED-95DC-43DA-A829-BD3687CA13F0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{FA7AFA7E-3EA3-49D4-9028-8A3E4075F4D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA7AFA7E-3EA3-49D4-9028-8A3E4075F4D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA7AFA7E-3EA3-49D4-9028-8A3E4075F4D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48E51DED-95DC-43DA-A829-BD3687CA13F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48E51DED-95DC-43DA-A829-BD3687CA13F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48E51DED-95DC-43DA-A829-BD3687CA13F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48E51DED-95DC-43DA-A829-BD3687CA13F0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
