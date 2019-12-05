@@ -4,79 +4,69 @@ namespace Type.BigInteger
 {
     public class BigInteger
     {
-        const int CLUSTER_SIZE = 18;
-        const long MAX_CLUSTER_VALUE = 1000000000000000000;
-        public ulong[] Clusters { get; }
+        private const int ClusterSize = 18;
+        private const long MaxClusterValue = (long)1E18;
+
         public bool IsNegative { get; }
-        public long Size { get; }
+        public int Size { get; set; }
+        public int ClustersLength { get; set; }
+        public ulong[] Clusters { get; }
 
-        public BigInteger(string bigInteger)
+        public BigInteger(string input)
         {
-            if (bigInteger[0] == '-')
+            IsNegative = input[0] == '-';
+            var offset = IsNegative ? 1 : 0;
+
+            Size = input.Length - offset;
+            ClustersLength = (int)Math.Ceiling((double)Size / ClusterSize);
+            Clusters = new ulong[ClustersLength];
+
+            var clusterIndex = 0;
+            for (var i = input.Length - ClusterSize - offset; i >= offset; i -= ClusterSize)
             {
-                IsNegative = true;
-                bigInteger = bigInteger.Substring(1);
+                Clusters[clusterIndex] = Convert.ToUInt64(input.Substring(i + offset, ClusterSize));
+                clusterIndex++;
             }
 
-            Size = bigInteger.Length;
-            int quotient = bigInteger.Length / CLUSTER_SIZE;
-            int remainder = bigInteger.Length % CLUSTER_SIZE;
-            Clusters = new ulong[quotient + (remainder == 0 ? 0 : 1)];
+            var remainder = Size % ClusterSize;
+            if (remainder != 0) Clusters[clusterIndex] = Convert.ToUInt64(input.Substring(offset, remainder));
+        }
 
-            var numberIndex = 0;
-            for (var i = bigInteger.Length - CLUSTER_SIZE; i >= 0; i -= CLUSTER_SIZE)
-            {
-                Clusters[numberIndex] = ulong.Parse(bigInteger.Substring(i, CLUSTER_SIZE));
-                numberIndex++;
-            }
-            if (remainder != 0)
-            {
-                Clusters[numberIndex] = ulong.Parse(bigInteger.Substring(0, remainder));
-            }
+        public BigInteger(int clustersLength)
+        {
+            Size = clustersLength * ClusterSize;
+            ClustersLength = clustersLength;
+            Clusters = new ulong[ClustersLength];
         }
 
         public BigInteger Add(BigInteger other)
         {
-            string result = "";
-            BigInteger first = this;
-            BigInteger second = other;
-            if (Size < other.Size)
-            {
-                first = other;
-                second = this;
-            }
+            var length = Math.Max(ClustersLength, other.ClustersLength);
+            var result = new BigInteger(length + 1);
+            var carry = 0;
 
-            ulong carry = 0;
-            for (int i = 0; i < second.Clusters.Length; i++)
+            for (var i = 0; i < length; i++)
             {
-                ulong sum = first.Clusters[i] + second.Clusters[i] + carry;
-                carry = 0;
-                if (sum >= MAX_CLUSTER_VALUE)
-                {
-                    carry = 1;
-                    sum %= MAX_CLUSTER_VALUE;
-                }
-                
-                result = sum.ToString().PadLeft(CLUSTER_SIZE, '0') + result;
-            }
-
-            for (int i = second.Clusters.Length; i < first.Clusters.Length; i++)
-            {
-                ulong sum = first.Clusters[i] + carry;
-                carry = 0;
-                if (sum >= MAX_CLUSTER_VALUE)
-                {
-                    carry = 1;
-                    sum %= MAX_CLUSTER_VALUE;
-                }
-                result = sum.ToString().PadLeft(CLUSTER_SIZE, '0') + result;
+                var operand1 = i < ClustersLength ? Clusters[i] : 0;
+                var operand2 = i < other.ClustersLength ? other.Clusters[i] : 0;
+                var sum = operand1 + operand2 + (ulong)carry;
+                carry = sum >= MaxClusterValue ? 1 : 0;
+                result.Clusters[i] = sum % MaxClusterValue;
             }
 
             if (carry == 1)
-                result = "1" + result;
+            {
+                result.Clusters[result.ClustersLength - 1] = (ulong)carry;
+                result.Size -= ClusterSize - 1;
+            }
+            else
+            {
+                result.ClustersLength--;
+                var lastClusterLength = result.Clusters[result.ClustersLength - 1].ToString().Length;
+                result.Size -= 2 * ClusterSize - lastClusterLength;
+            }
 
-            return new BigInteger(result);
-
+            return result;
         }
 
         public BigInteger Subtract(BigInteger other)
@@ -96,13 +86,13 @@ namespace Type.BigInteger
 
         public override string ToString()
         {
-            string s = "";
-            for (int i = 0; i < Clusters.Length - 1; i++)
+            var str = "";
+            for (var i = 0; i < ClustersLength - 1; i++)
             {
-                s = Clusters[i].ToString().PadLeft(CLUSTER_SIZE, '0') + s;
+                str = Clusters[i].ToString().PadLeft(ClusterSize, '0') + str;
             }
 
-            return Clusters[Clusters.Length - 1].ToString() + s;
+            return (IsNegative ? "-" : "") + Clusters[ClustersLength - 1] + str;
         }
     }
 
