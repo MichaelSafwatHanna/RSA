@@ -10,7 +10,7 @@ namespace Type.BigInteger
         private bool IsNegative { get; }
         public int Size { get; private set; }
         public int ClustersLength { get; private set; }
-        private ulong[] Clusters { get; }
+        private long[] Clusters { get; }
 
         public BigInteger(string input)
         {
@@ -19,28 +19,36 @@ namespace Type.BigInteger
 
             Size = input.Length - offset;
             ClustersLength = (int)Math.Ceiling((double)Size / ClusterSize);
-            Clusters = new ulong[ClustersLength];
+            Clusters = new long[ClustersLength];
 
             var clusterIndex = 0;
             for (var i = input.Length - ClusterSize - offset; i >= offset; i -= ClusterSize)
             {
-                Clusters[clusterIndex] = Convert.ToUInt64(input.Substring(i + offset, ClusterSize));
+                Clusters[clusterIndex] = Convert.ToInt64(input.Substring(i + offset, ClusterSize));
                 clusterIndex++;
             }
 
             var remainder = Size % ClusterSize;
-            if (remainder != 0) Clusters[clusterIndex] = Convert.ToUInt64(input.Substring(offset, remainder));
+            if (remainder != 0) Clusters[clusterIndex] = Convert.ToInt64(input.Substring(offset, remainder));
         }
 
         private BigInteger(int clustersLength)
         {
             Size = clustersLength * ClusterSize;
             ClustersLength = clustersLength;
-            Clusters = new ulong[ClustersLength];
+            Clusters = new long[ClustersLength];
+        }
+
+        private void RemoveLastCluster()
+        {
+            ClustersLength--;
+            Size -= ClusterSize;
         }
 
         public BigInteger Add(BigInteger other)
         {
+            if (other.IsNegative) return Subtract(other);
+
             var length = Math.Max(ClustersLength, other.ClustersLength);
             var result = new BigInteger(length + 1);
             var carry = 0;
@@ -49,21 +57,15 @@ namespace Type.BigInteger
             {
                 var operand1 = i < ClustersLength ? Clusters[i] : 0;
                 var operand2 = i < other.ClustersLength ? other.Clusters[i] : 0;
-                var sum = operand1 + operand2 + (ulong)carry;
+                var sum = operand1 + operand2 + carry;
                 carry = sum >= MaxClusterValue ? 1 : 0;
                 result.Clusters[i] = sum % MaxClusterValue;
             }
 
-            result.Clusters[result.ClustersLength - 1] = (ulong)carry;
-
-            if (carry == 0)
-            {
-                // Remove Last Cluster
-                result.ClustersLength--;
-                result.Size -= ClusterSize;
-            }
+            result.Clusters[result.ClustersLength - 1] = carry;
 
             // Adjust Size
+            if (carry == 0) result.RemoveLastCluster();
             var lastClusterLength = result.Clusters[result.ClustersLength - 1].ToString().Length;
             result.Size -= ClusterSize - lastClusterLength;
 
@@ -72,7 +74,32 @@ namespace Type.BigInteger
 
         public BigInteger Subtract(BigInteger other)
         {
-            throw new NotImplementedException();
+            if (other.IsNegative) return Add(other);
+
+            var length = Math.Max(ClustersLength, other.ClustersLength);
+            var result = new BigInteger(length);
+            var borrow = 0;
+
+            for (var i = 0; i < length; i++)
+            {
+                var operand1 = i < ClustersLength ? Clusters[i] : 0;
+                var operand2 = i < other.ClustersLength ? other.Clusters[i] : 0;
+                var diff = operand1 - operand2 - borrow;
+                borrow = diff < 0 ? 1 : 0;
+                result.Clusters[i] = diff + borrow * MaxClusterValue;
+            }
+
+            // Remove Empty Clusters
+            while (result.ClustersLength > 1 && result.Clusters[result.ClustersLength - 1] == 0)
+            {
+                result.RemoveLastCluster();
+            }
+
+            // Adjust Size
+            var lastClusterLength = result.Clusters[result.ClustersLength - 1].ToString().Length;
+            result.Size -= ClusterSize - lastClusterLength;
+
+            return result;
         }
 
         public BigInteger Multiply(BigInteger other)
