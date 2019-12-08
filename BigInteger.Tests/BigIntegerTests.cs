@@ -10,6 +10,10 @@ namespace Type.BigInteger.Tests
         [DataRow(Cases.Add.Case2.Input1, Cases.Add.Case2.Input2, Cases.Add.Case2.Output, DisplayName = Cases.Add.Case2.Name)]
         [DataRow(Cases.Add.Case3.Input1, Cases.Add.Case3.Input2, Cases.Add.Case3.Output, DisplayName = Cases.Add.Case3.Name)]
         [DataRow(Cases.Add.Case4.Input1, Cases.Add.Case4.Input2, Cases.Add.Case4.Output, DisplayName = Cases.Add.Case4.Name)]
+        [DataRow(Cases.Add.Case5.Input1, Cases.Add.Case5.Input2, Cases.Add.Case5.Output, DisplayName = Cases.Add.Case5.Name)]
+        [DataRow(Cases.Add.Case6.Input1, Cases.Add.Case6.Input2, Cases.Add.Case6.Output, DisplayName = Cases.Add.Case6.Name)]
+        [DataRow(Cases.Add.Case7.Input1, Cases.Add.Case7.Input2, Cases.Add.Case7.Output, DisplayName = Cases.Add.Case7.Name)]
+        [DataRow(Cases.Add.Case8.Input1, Cases.Add.Case8.Input2, Cases.Add.Case8.Output, DisplayName = Cases.Add.Case8.Name)]
         public void AddTest(string input1, string input2, string output)
         {
             var operand1 = new BigInteger(input1);
@@ -25,6 +29,16 @@ namespace Type.BigInteger.Tests
         [DataRow(Cases.Sub.Case3.Input1, Cases.Sub.Case3.Input2, Cases.Sub.Case3.Output, DisplayName = Cases.Sub.Case3.Name)]
         [DataRow(Cases.Sub.Case4.Input1, Cases.Sub.Case4.Input2, Cases.Sub.Case4.Output, DisplayName = Cases.Sub.Case4.Name)]
         [DataRow(Cases.Sub.Case5.Input1, Cases.Sub.Case5.Input2, Cases.Sub.Case5.Output, DisplayName = Cases.Sub.Case5.Name)]
+        [DataRow(Cases.Sub.Case6.Input1, Cases.Sub.Case6.Input2, Cases.Sub.Case6.Output, DisplayName = Cases.Sub.Case6.Name)]
+        [DataRow(Cases.Sub.Case7.Input1, Cases.Sub.Case7.Input2, Cases.Sub.Case7.Output, DisplayName = Cases.Sub.Case7.Name)]
+        [DataRow(Cases.Sub.Case8.Input1, Cases.Sub.Case8.Input2, Cases.Sub.Case8.Output, DisplayName = Cases.Sub.Case8.Name)]
+        [DataRow(Cases.Sub.Case9.Input1, Cases.Sub.Case9.Input2, Cases.Sub.Case9.Output, DisplayName = Cases.Sub.Case9.Name)]
+        [DataRow(Cases.Sub.Case10.Input1, Cases.Sub.Case10.Input2, Cases.Sub.Case10.Output, DisplayName = Cases.Sub.Case10.Name)]
+        [DataRow(Cases.Sub.Case11.Input1, Cases.Sub.Case11.Input2, Cases.Sub.Case11.Output, DisplayName = Cases.Sub.Case11.Name)]
+        [DataRow(Cases.Sub.Case12.Input1, Cases.Sub.Case12.Input2, Cases.Sub.Case12.Output, DisplayName = Cases.Sub.Case12.Name)]
+        [DataRow(Cases.Sub.Case13.Input1, Cases.Sub.Case13.Input2, Cases.Sub.Case13.Output, DisplayName = Cases.Sub.Case13.Name)]
+        [DataRow(Cases.Sub.Case14.Input1, Cases.Sub.Case14.Input2, Cases.Sub.Case14.Output, DisplayName = Cases.Sub.Case14.Name)]
+        [DataRow(Cases.Sub.Case15.Input1, Cases.Sub.Case15.Input2, Cases.Sub.Case15.Output, DisplayName = Cases.Sub.Case15.Name)]
         public void SubtractTest(string input1, string input2, string output)
         {
             var operand1 = new BigInteger(input1);

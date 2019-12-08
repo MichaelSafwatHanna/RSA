@@ -1,10 +1,6 @@
 name: BigInteger Unit Testing
 
-on:
-  pull_request:
-    paths:
-    - 'BigInteger/**'
-    - 'BigInteger.Tests/**'
+on: [pull_request]
 
 jobs:
   test:
