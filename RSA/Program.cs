@@ -7,15 +7,26 @@ namespace RSA
     {
         private static void Main(string[] args)
         {
-            var bigInt = new BigInteger("123456789");
-            var actual = bigInt.ShiftLeft(10);
-            var expect = new BigInteger("1234567890000000000");
+            var bigInt = new BigInteger("123456789123456789987654321987654321123456789123456789");
+            bigInt.SplitClusters(0, out var lower, out var upper);
+            var expectLower = new BigInteger("0");
+            var expectUpper = new BigInteger("123456789123456789987654321987654321123456789123456789");
+
+
 
             Console.WriteLine();
-            Console.WriteLine($"    [BigInt]     {bigInt} | Size: {bigInt.Size} | Clusters: {bigInt.ClustersLength}");
-            Console.WriteLine($"    [Actual]     {actual} | Size: {actual.Size} | Clusters: {actual.ClustersLength}");
-            Console.WriteLine($"    [Expect]     {expect} | Size: {expect.Size} | Clusters: {expect.ClustersLength}");
-            Console.WriteLine($"    [Status]     {actual.Equals(expect)}");
+            Console.WriteLine($"    [BigInt]     {bigInt} | Length: {bigInt.Length} | Clusters: {bigInt.ClustersLength}");
+            Console.WriteLine($"    [Actual]     {lower} | Length: {lower.Length} | Clusters: {lower.ClustersLength}");
+            Console.WriteLine($"    [Expect]     {expectLower} | Length: {expectLower.Length} | Clusters: {expectLower.ClustersLength}");
+            Console.WriteLine($"    [Status]     {lower.Equals(expectLower)}");
+            Console.WriteLine();
+
+
+            Console.WriteLine();
+            Console.WriteLine($"    [BigInt]     {bigInt} | Length: {bigInt.Length} | Clusters: {bigInt.ClustersLength}");
+            Console.WriteLine($"    [Actual]     {upper} | Length: {upper.Length} | Clusters: {upper.ClustersLength}");
+            Console.WriteLine($"    [Expect]     {expectUpper} | Length: {expectUpper.Length} | Clusters: {expectUpper.ClustersLength}");
+            Console.WriteLine($"    [Status]     {upper.Equals(expectUpper)}");
             Console.WriteLine();
         }
     }
