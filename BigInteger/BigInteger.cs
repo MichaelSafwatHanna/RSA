@@ -4,13 +4,25 @@ namespace Type.BigInteger
 {
     public class BigInteger : IComparable<BigInteger>
     {
+        #region Constants
+
         private const int ClusterSize = 18;
         private const long MaxClusterValue = (long)1E18;
 
+        #endregion
+
+
+        #region Properties
+
         private bool IsNegative { get; set; }
-        public int Size { get; set; }
-        public int ClustersLength { get; set; }
+        public int Size { get; private set; }
+        public int ClustersLength { get; private set; }
         private long[] Clusters { get; }
+
+        #endregion
+
+
+        #region Constructors
 
         public BigInteger(string input)
         {
@@ -39,6 +51,11 @@ namespace Type.BigInteger
             Clusters = new long[ClustersLength];
         }
 
+        #endregion
+
+
+        #region Helper Methods
+
         private void RemoveLastCluster()
         {
             ClustersLength--;
@@ -50,6 +67,11 @@ namespace Type.BigInteger
             var lastClusterLength = Clusters[ClustersLength - 1].ToString().Length;
             Size = (ClustersLength - 1) * ClusterSize + lastClusterLength;
         }
+
+        #endregion
+
+
+        #region Arithmetic Methods
 
         public BigInteger Add(BigInteger other)
         {
@@ -160,16 +182,95 @@ namespace Type.BigInteger
             throw new NotImplementedException();
         }
 
-        public override string ToString()
+        #endregion
+
+
+        #region Shifting Methods
+
+        public BigInteger ShiftLeft(int count)
         {
-            var str = "";
-            for (var i = 0; i < ClustersLength - 1; i++)
+            var clustersShifting = count / ClusterSize;
+            var internalShifting = count % ClusterSize;
+            var shiftBase = (long)Math.Pow(10, internalShifting);
+            var split = MaxClusterValue / shiftBase;
+
+            var result = new BigInteger(ClustersLength + clustersShifting + 1);
+            long carry = 0;
+
+            for (var index = 0; index < ClustersLength; index++)
             {
-                str = Clusters[i].ToString().PadLeft(ClusterSize, '0') + str;
+                var upper = Clusters[index] / split;
+                var lower = Clusters[index] % split;
+                var value = lower * shiftBase + carry;
+                result.Clusters[index + clustersShifting] = value;
+                carry = upper;
             }
 
-            return (IsNegative ? "-" : "") + Clusters[ClustersLength - 1] + str;
+            result.Clusters[result.ClustersLength - 1] = carry;
+            if (carry == 0) result.RemoveLastCluster();
+            result.RecomputeSize();
+
+            return result;
         }
+
+        public BigInteger ShiftRight(int count)
+        {
+            if (count >= Size) return new BigInteger("0");
+
+            var clustersShifting = count / ClusterSize;
+            var internalShifting = count % ClusterSize;
+            var split = (long)Math.Pow(10, internalShifting);
+            var shiftBase = MaxClusterValue / split;
+
+            var result = new BigInteger(ClustersLength - clustersShifting);
+            long carry = 0;
+
+            for (var index = ClustersLength - 1; index >= clustersShifting; index--)
+            {
+                var upper = Clusters[index] / split;
+                var lower = Clusters[index] % split;
+                var value = upper + shiftBase * carry;
+                result.Clusters[index - clustersShifting] = value;
+                carry = lower;
+                if (value == 0) result.RemoveLastCluster();  // Remove Empty Cluster
+            }
+
+            result.RecomputeSize();
+            return result;
+        }
+
+        #endregion
+
+
+        #region Comparsion Methods
+
+        /// <summary>
+        /// Compares two objects
+        /// </summary>
+        /// <param name="other">Object to compare with</param>
+        /// <returns>
+        ///  0 if both are equal
+        ///  1 if this is bigger than other
+        /// -1 if other is bigger than this
+        /// </returns>
+        public int CompareTo(BigInteger other)
+        {
+            if (IsNegative && !other.IsNegative) return -1;
+            if (!IsNegative && other.IsNegative) return 1;
+            if (ClustersLength > other.ClustersLength) return IsNegative ? -1 : 1;
+            if (ClustersLength < other.ClustersLength) return IsNegative ? 1 : -1;
+            for (var i = 0; i < ClustersLength; i++)
+            {
+                if (Clusters[i] > other.Clusters[i]) return IsNegative ? -1 : 1;
+                if (Clusters[i] < other.Clusters[i]) return IsNegative ? 1 : -1;
+            }
+            return 0;
+        }
+
+        #endregion
+
+
+        #region Equality Methods
 
         private bool Equals(BigInteger other)
         {
@@ -194,27 +295,22 @@ namespace Type.BigInteger
             return hashCode;
         }
 
-        /// <summary>
-        /// Compares two objects
-        /// </summary>
-        /// <param name="other">Object to compare with</param>
-        /// <returns>
-        ///  0 if both are equal
-        ///  1 if this is bigger than other
-        /// -1 if other is bigger than this
-        /// </returns>
-        public int CompareTo(BigInteger other)
+        #endregion
+
+
+        #region Formatting Methods
+
+        public override string ToString()
         {
-            if (IsNegative && !other.IsNegative) return -1;
-            if (!IsNegative && other.IsNegative) return 1;
-            if (ClustersLength > other.ClustersLength) return IsNegative ? -1 : 1;
-            if (ClustersLength < other.ClustersLength) return IsNegative ? 1 : -1;
-            for (var i = 0; i < ClustersLength; i++)
+            var str = "";
+            for (var i = 0; i < ClustersLength - 1; i++)
             {
-                if (Clusters[i] > other.Clusters[i]) return IsNegative ? -1 : 1;
-                if (Clusters[i] < other.Clusters[i]) return IsNegative ? 1 : -1;
+                str = Clusters[i].ToString().PadLeft(ClusterSize, '0') + str;
             }
-            return 0;
+
+            return (IsNegative ? "-" : "") + Clusters[ClustersLength - 1] + str;
         }
+
+        #endregion
     }
 }

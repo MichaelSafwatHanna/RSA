@@ -7,13 +7,16 @@ namespace RSA
     {
         private static void Main(string[] args)
         {
-            var big = new BigInteger("-500");
-            var result = big.Subtract(new BigInteger("12"));
-            
-            Console.WriteLine($"Result: {result}");
-            Console.WriteLine($"Size: {result.Size}");
-            Console.WriteLine($"Clusters: {result.ClustersLength}");
-            Console.WriteLine($"As Expected: {result.ToString() == "-512"}");
+            var bigInt = new BigInteger("123456789");
+            var actual = bigInt.ShiftLeft(10);
+            var expect = new BigInteger("1234567890000000000");
+
+            Console.WriteLine();
+            Console.WriteLine($"    [BigInt]     {bigInt} | Size: {bigInt.Size} | Clusters: {bigInt.ClustersLength}");
+            Console.WriteLine($"    [Actual]     {actual} | Size: {actual.Size} | Clusters: {actual.ClustersLength}");
+            Console.WriteLine($"    [Expect]     {expect} | Size: {expect.Size} | Clusters: {expect.ClustersLength}");
+            Console.WriteLine($"    [Status]     {actual.Equals(expect)}");
+            Console.WriteLine();
         }
     }
 }
