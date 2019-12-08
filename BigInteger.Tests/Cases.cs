@@ -1,10 +1,10 @@
 ﻿namespace Type.BigInteger.Tests
 {
-    internal class Cases
+    internal static class Cases
     {
-        internal class Add
+        internal static class Add
         {
-            internal class Case1
+            internal static class Case1
             {
                 internal const string Name = "Case 01";
                 internal const string Input1 = "12";
@@ -12,7 +12,7 @@
                 internal const string Output = "24";
             }
 
-            internal class Case2
+            internal static class Case2
             {
                 internal const string Name = "Case 02";
                 internal const string Input1 = "1537983";
@@ -20,7 +20,7 @@
                 internal const string Output = "23608304439";
             }
 
-            internal class Case3
+            internal static class Case3
             {
                 internal const string Name = "Case 03";
                 internal const string Input1 = "377773935827991229645029714898969028";
@@ -28,18 +28,50 @@
                 internal const string Output = "301174256660973158468025933882460318670946550664";
             }
 
-            internal class Case4
+            internal static class Case4
             {
                 internal const string Name = "Case 04";
                 internal const string Input1 = "1242468682113840180763850624340867898830637122775434796573473991466933960634085363735808574823872230131509619596260435331836866582052453403290874467870290043697815376935298110895904163169442926407335197820883439691250684070655002714487685888";
                 internal const string Input2 = "417545487977981564551173186152102228498479694796653351848954185997611243506278579601980980219484255929864359810447039931";
                 internal const string Output = "1242468682113840180763850624340867898830637122775434796573473991466933960634085363735808574823872230131509619596260435332254412070030434967842047654022392272196295071731951462744858349167054169913613777422864419910734940000519362524934725819";
             }
+
+            internal static class Case5
+            {
+                internal const string Name = "Case 05";
+                internal const string Input1 = "500";
+                internal const string Input2 = "12";
+                internal const string Output = "512";
+            }
+
+            internal static class Case6
+            {
+                internal const string Name = "Case 06";
+                internal const string Input1 = "-500";
+                internal const string Input2 = "-12";
+                internal const string Output = "-512";
+            }
+
+            internal static class Case7
+            {
+                internal const string Name = "Case 07";
+                internal const string Input1 = "500";
+                internal const string Input2 = "-12";
+                internal const string Output = "488";
+            }
+
+            internal static class Case8
+            {
+                internal const string Name = "Case 08";
+                internal const string Input1 = "-500";
+                internal const string Input2 = "12";
+                internal const string Output = "-488";
+            }
         }
 
-        internal class Sub
+        internal static class Sub
         {
-            internal class Case1
+            internal static class Case1
             {
                 internal const string Name = "Case 01";
                 internal const string Input1 = "12";
@@ -47,7 +79,7 @@
                 internal const string Output = "0";
             }
 
-            internal class Case2
+            internal static class Case2
             {
                 internal const string Name = "Case 02";
                 internal const string Input1 = "23606766456";
@@ -55,7 +87,7 @@
                 internal const string Output = "23605228473";
             }
 
-            internal class Case3
+            internal static class Case3
             {
                 internal const string Name = "Case 03";
                 internal const string Input1 = "301174256660595384532197942652815288956047581636";
@@ -63,7 +95,7 @@
                 internal const string Output = "301174256660217610596369951423170259241148612608";
             }
 
-            internal class Case4
+            internal static class Case4
             {
                 internal const string Name = "Case 04";
                 internal const string Input1 = "1242468682113840180763850624340867898830637122775434796573473991466933960634085363735808574823872230131509619596260435331836866582052453403290874467870290043697815376935298110895904163169442926407335197820883439691250684070655002714487685888";
@@ -71,18 +103,98 @@
                 internal const string Output = "1242468682113840180763850624340867898830637122775434796573473991466933960634085363735808574823872230131509619596260435331419321094074471838739701281718187815199335682138644759046949977171831682901056618218902459471766428140790642904040645957";
             }
 
-            internal class Case5
+            internal static class Case5
             {
                 internal const string Name = "Case 05";
                 internal const string Input1 = "4746065774778736313991013446451762823551152230084842578766104765264199110147300822155702630456369808871508856166675242939783205225636134925618947132215173403355326845258208441126939944538594171280818779612461574891270164910667873484642585292515446565217074728006197739879363128442085702970944395693804734170707191774160806830620562064062100403812906395684974968";
                 internal const string Input2 = "1069316615549487026619022949768081235480483137805541651493147788536900481192180243486299495384378377884835399139944321508382197074480783287001843599098432863354215897022904829506300359345726175676489118945707291366438179064337272356680380792";
                 internal const string Output = "4746065774778736313991013446451762823551152230084842578766104765264199110147300822155702630456369808871508856166675242938713888610086647898999924182447092167874843707452666789633792156001693690088638536126162079506891787025832474344698263784133249490736291441004354140780930265087869805948039566187504374824981016097671687884913270697623921339475634039004594176";
             }
+
+            internal static class Case6
+            {
+                internal const string Name = "Case 06";
+                internal const string Input1 = "500";
+                internal const string Input2 = "500";
+                internal const string Output = "0";
+            }
+
+            internal static class Case7
+            {
+                internal const string Name = "Case 07";
+                internal const string Input1 = "-500";
+                internal const string Input2 = "-500";
+                internal const string Output = "0";
+            }
+
+            internal static class Case8
+            {
+                internal const string Name = "Case 08";
+                internal const string Input1 = "500";
+                internal const string Input2 = "12";
+                internal const string Output = "488";
+            }
+
+            internal static class Case9
+            {
+                internal const string Name = "Case 09";
+                internal const string Input1 = "-500";
+                internal const string Input2 = "-12";
+                internal const string Output = "-488";
+            }
+
+            internal static class Case10
+            {
+                internal const string Name = "Case 10";
+                internal const string Input1 = "500";
+                internal const string Input2 = "-12";
+                internal const string Output = "512";
+            }
+
+            internal static class Case11
+            {
+                internal const string Name = "Case 11";
+                internal const string Input1 = "-500";
+                internal const string Input2 = "12";
+                internal const string Output = "-512";
+            }
+
+            internal static class Case12
+            {
+                internal const string Name = "Case 12";
+                internal const string Input1 = "-12";
+                internal const string Input2 = "-500";
+                internal const string Output = "488";
+            }
+
+            internal static class Case13
+            {
+                internal const string Name = "Case 13";
+                internal const string Input1 = "12";
+                internal const string Input2 = "500";
+                internal const string Output = "-488";
+            }
+
+            internal static class Case14
+            {
+                internal const string Name = "Case 14";
+                internal const string Input1 = "12";
+                internal const string Input2 = "-500";
+                internal const string Output = "512";
+            }
+
+            internal static class Case15
+            {
+                internal const string Name = "Case 15";
+                internal const string Input1 = "-12";
+                internal const string Input2 = "500";
+                internal const string Output = "-512";
+            }
         }
 
-        internal class Mul
+        internal static class Mul
         {
-            internal class Case1
+            internal static class Case1
             {
                 internal const string Name = "Case 01";
                 internal const string Input1 = "12";
@@ -90,7 +202,7 @@
                 internal const string Output = "144";
             }
 
-            internal class Case2
+            internal static class Case2
             {
                 internal const string Name = "Case 02";
                 internal const string Input1 = "1537983";
@@ -98,7 +210,7 @@
                 internal const string Output = "36306805494298248";
             }
 
-            internal class Case3
+            internal static class Case3
             {
                 internal const string Name = "Case 03";
                 internal const string Input1 = "377773935827991229645029714898969028";
@@ -106,7 +218,7 @@
                 internal const string Output = "113775784308742720967400704214093299868785809849503488101617302573417961289065569808";
             }
 
-            internal class Case4
+            internal static class Case4
             {
                 internal const string Name = "Case 04";
                 internal const string Input1 = "3100675333279421257617608000138708458801868104897830766303748759001197941598947667658921326203715302820376126044350727358334784388707871335695033578987322915001084651142521380653788065896776145986861827114585345797313243712035560159039288370426232610063160693819476708720025406607223686363847361116574606364158447113777534349736920690749819066439287617387982955";
@@ -115,9 +227,9 @@
             }
         }
 
-        internal class Div
+        internal static class Div
         {
-            internal class Case1
+            internal static class Case1
             {
                 internal const string Name = "Case 01";
                 internal const string Input1 = "12";
@@ -126,7 +238,7 @@
                 internal const string OutputR = "0";
             }
 
-            internal class Case2
+            internal static class Case2
             {
                 internal const string Name = "Case 02";
                 internal const string Input1 = "23606766456";
@@ -135,7 +247,7 @@
                 internal const string OutputR = "265389";
             }
 
-            internal class Case3
+            internal static class Case3
             {
                 internal const string Name = "Case 03";
                 internal const string Input1 = "301174256660595384532197942652815288956047581636";
@@ -144,7 +256,7 @@
                 internal const string OutputR = "370442265729151065970477043989892880";
             }
 
-            internal class Case4
+            internal static class Case4
             {
                 internal const string Name = "Case 04";
                 internal const string Input1 = "3100675333279421257617608000138708458801868104897830766303748759001197941598947667658921326203715302820376126044350727358334784388707871335695033578987322915001084651142521380653788065896776145986861827114585345797313243712035560159039288370426232610063160693819476708720025406607223686363847361116574606364158447113777534349736920690749819066439287617387982955";
