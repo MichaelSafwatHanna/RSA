@@ -9,7 +9,7 @@ namespace RSA
         {
             var operand1 = new BigInteger("12");
             var operand2 = new BigInteger("-12");
-            var actual = operand1.Multiply(operand2);
+            var actual = operand1 * operand2;
             var expect = new BigInteger("-144");
 
             Console.WriteLine();

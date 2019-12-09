@@ -18,7 +18,7 @@ namespace Type.BigInteger.Tests
         {
             var operand1 = new BigInteger(input1);
             var operand2 = new BigInteger(input2);
-            var actual = operand1.Add(operand2);
+            var actual = operand1 + operand2;
             var expected = new BigInteger(output);
             Assert.AreEqual(expected, actual);
         }
@@ -43,7 +43,7 @@ namespace Type.BigInteger.Tests
         {
             var operand1 = new BigInteger(input1);
             var operand2 = new BigInteger(input2);
-            var actual = operand1.Subtract(operand2);
+            var actual = operand1 - operand2;
             var expected = new BigInteger(output);
             Assert.AreEqual(expected, actual);
         }
@@ -57,7 +57,7 @@ namespace Type.BigInteger.Tests
         {
             var operand1 = new BigInteger(input1);
             var operand2 = new BigInteger(input2);
-            var actual = operand1.Multiply(operand2);
+            var actual = operand1 * operand2;
             var expected = new BigInteger(output);
             Assert.AreEqual(expected, actual);
         }
@@ -71,7 +71,8 @@ namespace Type.BigInteger.Tests
         {
             var operand1 = new BigInteger(input1);
             var operand2 = new BigInteger(input2);
-            operand1.Divide(operand2, out var actualQ, out var actualR);
+            var actualQ = operand1 / operand2;
+            var actualR = operand1 % operand2;
             var expectedQ = new BigInteger(outputQ);
             var expectedR = new BigInteger(outputR);
             Assert.AreEqual(expectedQ, actualQ);
