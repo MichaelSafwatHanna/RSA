@@ -7,26 +7,17 @@ namespace RSA
     {
         private static void Main(string[] args)
         {
-            var bigInt = new BigInteger("123456789123456789987654321987654321123456789123456789");
-            bigInt.SplitClusters(0, out var lower, out var upper);
-            var expectLower = new BigInteger("0");
-            var expectUpper = new BigInteger("123456789123456789987654321987654321123456789123456789");
-
-
+            var operand1 = new BigInteger("12");
+            var operand2 = new BigInteger("-12");
+            var actual = operand1.Multiply(operand2);
+            var expect = new BigInteger("-144");
 
             Console.WriteLine();
-            Console.WriteLine($"    [BigInt]     {bigInt} | Length: {bigInt.Length} | Clusters: {bigInt.ClustersLength}");
-            Console.WriteLine($"    [Actual]     {lower} | Length: {lower.Length} | Clusters: {lower.ClustersLength}");
-            Console.WriteLine($"    [Expect]     {expectLower} | Length: {expectLower.Length} | Clusters: {expectLower.ClustersLength}");
-            Console.WriteLine($"    [Status]     {lower.Equals(expectLower)}");
-            Console.WriteLine();
-
-
-            Console.WriteLine();
-            Console.WriteLine($"    [BigInt]     {bigInt} | Length: {bigInt.Length} | Clusters: {bigInt.ClustersLength}");
-            Console.WriteLine($"    [Actual]     {upper} | Length: {upper.Length} | Clusters: {upper.ClustersLength}");
-            Console.WriteLine($"    [Expect]     {expectUpper} | Length: {expectUpper.Length} | Clusters: {expectUpper.ClustersLength}");
-            Console.WriteLine($"    [Status]     {upper.Equals(expectUpper)}");
+            Console.WriteLine($"    [OPRND1]     {operand1} | Length: {operand1.Length} | Clusters: {operand1.ClustersLength}");
+            Console.WriteLine($"    [OPRND2]     {operand2} | Length: {operand2.Length} | Clusters: {operand2.ClustersLength}");
+            Console.WriteLine($"    [Actual]     {actual} | Length: {actual.Length} | Clusters: {actual.ClustersLength}");
+            Console.WriteLine($"    [Expect]     {expect} | Length: {expect.Length} | Clusters: {expect.ClustersLength}");
+            Console.WriteLine($"    [Status]     {actual.Equals(expect)}");
             Console.WriteLine();
         }
     }
