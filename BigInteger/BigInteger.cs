@@ -16,6 +16,7 @@ namespace Type.BigInteger
 
         private bool IsNegative { get; set; }
         private bool IsZero { get; }
+        private bool IsOne => ClustersLength == 1 && Clusters[Head] == 1;
         private int Head { get; set; }
         private int Tail { get; set; }
         public int ClustersLength => Tail - Head + 1;
@@ -38,7 +39,7 @@ namespace Type.BigInteger
             Clusters = new long[ClustersLength];
 
             var clusterIndex = 0;
-            for (var i = input.Length - ClusterCapacity - offset; i >= offset; i -= ClusterCapacity)
+            for (var i = input.Length - ClusterCapacity - offset; i >= 0; i -= ClusterCapacity)
             {
                 Clusters[clusterIndex] = Convert.ToInt64(input.Substring(i + offset, ClusterCapacity));
                 clusterIndex++;
@@ -82,31 +83,22 @@ namespace Type.BigInteger
             Length = (ClustersLength - 1) * ClusterCapacity + lastClusterLength;
         }
 
-        public void SplitClusters(int index, out BigInteger lower, out BigInteger upper)
+        private void SplitClusters(int index, out BigInteger upper, out BigInteger lower)
         {
-            if (index >= Tail)
-            {
-                lower = this;
-                upper = new BigInteger("0");
-                return;
-            }
-
-            if (index == 0)
-            {
-                lower = new BigInteger("0");
-                upper = this;
-                return;
-            }
-
             index += Head;
 
-            lower = new BigInteger(this);
-            lower.Tail = index;
-            lower.RecomputeLength();
+            if (index >= Tail)
+            {
+                upper = new BigInteger("0");
+                lower = this;
+                return;
+            }
 
-            upper = new BigInteger(this);
-            upper.Head = index + 1;
+            upper = new BigInteger(this) { Head = index + 1 };
             upper.RecomputeLength();
+
+            lower = new BigInteger(this) { Tail = index };
+            lower.RecomputeLength();
         }
 
         #endregion
@@ -229,7 +221,54 @@ namespace Type.BigInteger
 
         public BigInteger Multiply(BigInteger other)
         {
-            throw new NotImplementedException();
+            if (IsZero || other.IsZero) return new BigInteger("0");
+            if (IsOne) return new BigInteger(other);
+            if (other.IsOne) return new BigInteger(this);
+            if (ClustersLength == 1 && other.ClustersLength == 1)
+            {
+                var n = Math.Min(Length, other.Length);
+                var m = (int)Math.Ceiling(n / 2.0);
+
+                // Splitting
+                var pow = (long)Math.Pow(10, m);
+                var a = Clusters[Head] / pow;
+                var b = Clusters[Head] % pow;
+                var c = other.Clusters[other.Head] / pow;
+                var d = other.Clusters[other.Head] % pow;
+
+                var ac = a * c;
+                var bd = b * d;
+                var abcd = (a + b) * (c + d);
+
+                // Shifting
+                var operand1 = new BigInteger(ac + new string('0', 2 * m));
+                var operand2 = new BigInteger(abcd - bd - ac + new string('0', m));
+
+                var result = operand1.Add(operand2).Add(new BigInteger(bd.ToString()));
+                result.IsNegative = IsNegative && !other.IsNegative || !IsNegative && other.IsNegative;
+                return result;
+            }
+            else
+            {
+                var n = Math.Min(ClustersLength, other.ClustersLength);
+                var m = (int)Math.Ceiling(n / 2.0);
+
+                // Splitting
+                SplitClusters(m - 1, out var a, out var b);
+                other.SplitClusters(m - 1, out var c, out var d);
+
+                var ac = a.Multiply(c);
+                var bd = b.Multiply(d);
+                var abcd = a.Add(b).Multiply(c.Add(d));
+
+                // Shifting
+                var operand1 = ac.ShiftLeft(2 * m * ClusterCapacity);
+                var operand2 = abcd.Subtract(bd).Subtract(ac).ShiftLeft(m * ClusterCapacity);
+
+                var result = operand1.Add(operand2).Add(bd);
+                result.IsNegative = IsNegative && !other.IsNegative || !IsNegative && other.IsNegative;
+                return result;
+            }
         }
 
         public void Divide(BigInteger other, out BigInteger quotient, out BigInteger remainder)
@@ -321,10 +360,10 @@ namespace Type.BigInteger
             if (!IsNegative && other.IsNegative) return 1;
             if (ClustersLength > other.ClustersLength) return IsNegative ? -1 : 1;
             if (ClustersLength < other.ClustersLength) return IsNegative ? 1 : -1;
-            for (var i = 0; i < ClustersLength; i++)
+            for (var i = ClustersLength - 1; i >= 0; i--)
             {
-                if (Clusters[i + Head] > other.Clusters[i + Head]) return IsNegative ? -1 : 1;
-                if (Clusters[i + Head] < other.Clusters[i + Head]) return IsNegative ? 1 : -1;
+                if (Clusters[i + Head] > other.Clusters[i + other.Head]) return IsNegative ? -1 : 1;
+                if (Clusters[i + Head] < other.Clusters[i + other.Head]) return IsNegative ? 1 : -1;
             }
             return 0;
         }
