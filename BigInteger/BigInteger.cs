@@ -106,7 +106,7 @@ namespace Type.BigInteger
 
         #region Arithmetic Methods
 
-        public BigInteger Add(BigInteger other)
+        private BigInteger Add(BigInteger other)
         {
             if (IsZero) return new BigInteger(other);
             if (other.IsZero) return new BigInteger(this);
@@ -150,7 +150,7 @@ namespace Type.BigInteger
             return result;
         }
 
-        public BigInteger Subtract(BigInteger other)
+        private BigInteger Subtract(BigInteger other)
         {
             if (IsZero) return new BigInteger(other) { IsNegative = false };
             if (other.IsZero) return new BigInteger(this);
@@ -219,7 +219,7 @@ namespace Type.BigInteger
             return result;
         }
 
-        public BigInteger Multiply(BigInteger other)
+        private BigInteger Multiply(BigInteger other)
         {
             if (IsZero || other.IsZero) return new BigInteger("0");
             if (IsOne) return new BigInteger(other);
@@ -244,7 +244,7 @@ namespace Type.BigInteger
                 var operand1 = new BigInteger(ac + new string('0', 2 * m));
                 var operand2 = new BigInteger(abcd - bd - ac + new string('0', m));
 
-                var result = operand1.Add(operand2).Add(new BigInteger(bd.ToString()));
+                var result = operand1 + operand2 + new BigInteger(bd.ToString());
                 result.IsNegative = IsNegative && !other.IsNegative || !IsNegative && other.IsNegative;
                 return result;
             }
@@ -257,21 +257,21 @@ namespace Type.BigInteger
                 SplitClusters(m - 1, out var a, out var b);
                 other.SplitClusters(m - 1, out var c, out var d);
 
-                var ac = a.Multiply(c);
-                var bd = b.Multiply(d);
-                var abcd = a.Add(b).Multiply(c.Add(d));
+                var ac = a * c;
+                var bd = b * d;
+                var abcd = (a + b) * (c + d);
 
                 // Shifting
-                var operand1 = ac.ShiftLeft(2 * m * ClusterCapacity);
-                var operand2 = abcd.Subtract(bd).Subtract(ac).ShiftLeft(m * ClusterCapacity);
+                var operand1 = ac << (2 * m * ClusterCapacity);
+                var operand2 = (abcd - bd - ac) << (m * ClusterCapacity);
 
-                var result = operand1.Add(operand2).Add(bd);
+                var result = operand1 + operand2 + bd;
                 result.IsNegative = IsNegative && !other.IsNegative || !IsNegative && other.IsNegative;
                 return result;
             }
         }
 
-        public void Divide(BigInteger other, out BigInteger quotient, out BigInteger remainder)
+        private void Divide(BigInteger other, out BigInteger quotient, out BigInteger remainder)
         {
             throw new NotImplementedException();
         }
@@ -338,6 +338,48 @@ namespace Type.BigInteger
 
             return result;
         }
+
+        #endregion
+
+
+        #region Operators
+
+        public static BigInteger operator +(BigInteger left, BigInteger right) => left.Add(right);
+
+        public static BigInteger operator -(BigInteger left, BigInteger right) => left.Subtract(right);
+
+        public static BigInteger operator *(BigInteger left, BigInteger right) => left.Multiply(right);
+
+        public static BigInteger operator /(BigInteger left, BigInteger right)
+        {
+            left.Divide(right, out var quotient, out _);
+            return quotient;
+        }
+
+        public static BigInteger operator %(BigInteger left, BigInteger right)
+        {
+            left.Divide(right, out _, out var remainder);
+            return remainder;
+        }
+
+
+        public static BigInteger operator <<(BigInteger left,  int right) => left.ShiftLeft(right);
+
+        public static BigInteger operator >>(BigInteger left, int right) => left.ShiftRight(right);
+
+
+        public static bool operator ==(BigInteger left, BigInteger right) => left.Equals(right);
+
+        public static bool operator !=(BigInteger left, BigInteger right) => !left.Equals(right);
+
+
+        public static bool operator <(BigInteger left, BigInteger right) => left.CompareTo(right) < 0;
+
+        public static bool operator >(BigInteger left, BigInteger right) => left.CompareTo(right) > 0;
+
+        public static bool operator <=(BigInteger left, BigInteger right) => left.CompareTo(right) <= 0;
+
+        public static bool operator >=(BigInteger left, BigInteger right) => left.CompareTo(right) >= 0;
 
         #endregion
 
