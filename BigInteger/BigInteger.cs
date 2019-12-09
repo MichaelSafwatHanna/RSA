@@ -11,22 +11,31 @@ namespace Type.BigInteger
 
         #endregion
 
+        #region Static Members
+
+        private static readonly BigInteger BigZero = new BigInteger("0");
+        private static readonly BigInteger BigOne = new BigInteger("1");
+
+        #endregion
+
 
         #region Properties
 
         private bool IsNegative { get; set; }
-        private bool IsZero { get; }
+        private bool IsZero { get; set; }
         private bool IsOne => ClustersLength == 1 && Clusters[Head] == 1;
         private int Head { get; set; }
         private int Tail { get; set; }
         public int ClustersLength => Tail - Head + 1;
         public int Length { get; private set; }
-        private long[] Clusters { get; }
+        private long[] Clusters { get; set; }
 
         #endregion
 
 
         #region Constructors
+
+        private BigInteger() { }
 
         public BigInteger(string input)
         {
@@ -56,16 +65,6 @@ namespace Type.BigInteger
             Clusters = new long[ClustersLength];
         }
 
-        private BigInteger(BigInteger bigInteger)
-        {
-            IsNegative = bigInteger.IsNegative;
-            IsZero = bigInteger.IsZero;
-            Length = bigInteger.Length;
-            Head = bigInteger.Head;
-            Tail = bigInteger.Tail;
-            Clusters = (long[])bigInteger.Clusters.Clone();
-        }
-
         #endregion
 
 
@@ -89,16 +88,31 @@ namespace Type.BigInteger
 
             if (index >= Tail)
             {
-                upper = new BigInteger("0");
-                lower = this;
+                upper = BigZero.Clone();
+                lower = Clone();
                 return;
             }
 
-            upper = new BigInteger(this) { Head = index + 1 };
+            upper = Clone(head: index + 1);
             upper.RecomputeLength();
 
-            lower = new BigInteger(this) { Tail = index };
+            lower = Clone(tail: index);
             lower.RecomputeLength();
+        }
+
+        private BigInteger Clone(long[] clusters = null,
+                                 bool? isNegative = null, bool? isZero = null,
+                                 int? length = null, int? head = null, int? tail = null)
+        {
+            return new BigInteger
+            {
+                Clusters = clusters ?? (long[])Clusters.Clone(),
+                IsNegative = isNegative ?? IsNegative,
+                IsZero = isZero ?? IsZero,
+                Length = length ?? Length,
+                Head = head ?? Head,
+                Tail = tail ?? Tail
+            };
         }
 
         #endregion
@@ -108,8 +122,8 @@ namespace Type.BigInteger
 
         private BigInteger Add(BigInteger other)
         {
-            if (IsZero) return new BigInteger(other);
-            if (other.IsZero) return new BigInteger(this);
+            if (IsZero) return other.Clone();
+            if (other.IsZero) return Clone();
 
             BigInteger result;
 
@@ -130,8 +144,7 @@ namespace Type.BigInteger
             }
 
             var length = Math.Max(ClustersLength, other.ClustersLength);
-            result = new BigInteger(length + 1);
-            if (IsNegative && other.IsNegative) result.IsNegative = true;
+            result = new BigInteger(length + 1) { IsNegative = IsNegative && other.IsNegative };
             var carry = 0;
 
             for (var i = 0; i < length; i++)
@@ -152,8 +165,8 @@ namespace Type.BigInteger
 
         private BigInteger Subtract(BigInteger other)
         {
-            if (IsZero) return new BigInteger(other) { IsNegative = false };
-            if (other.IsZero) return new BigInteger(this);
+            if (IsZero) return other.Clone(isNegative: false);
+            if (other.IsZero) return Clone();
 
             BigInteger result;
 
@@ -180,7 +193,7 @@ namespace Type.BigInteger
             result = new BigInteger(length);
 
             var comparison = CompareTo(other);
-            if (comparison == 0) return new BigInteger("0");
+            if (comparison == 0) return BigZero.Clone();
 
             var isSmaller = comparison < 0;
             if (isSmaller)
@@ -221,9 +234,9 @@ namespace Type.BigInteger
 
         private BigInteger Multiply(BigInteger other)
         {
-            if (IsZero || other.IsZero) return new BigInteger("0");
-            if (IsOne) return new BigInteger(other);
-            if (other.IsOne) return new BigInteger(this);
+            if (IsZero || other.IsZero) return BigZero.Clone();
+            if (IsOne) return other.Clone();
+            if (other.IsOne) return Clone();
             if (ClustersLength == 1 && other.ClustersLength == 1)
             {
                 var n = Math.Min(Length, other.Length);
@@ -283,7 +296,7 @@ namespace Type.BigInteger
 
         public BigInteger ShiftLeft(int count)
         {
-            if (IsZero || count == 0) return new BigInteger(this);
+            if (IsZero || count == 0) return Clone();
 
             var clustersShifting = count / ClusterCapacity;
             var internalShifting = count % ClusterCapacity;
@@ -312,8 +325,8 @@ namespace Type.BigInteger
 
         public BigInteger ShiftRight(int count)
         {
-            if (IsZero || count == 0 || Length <= ClusterCapacity) return new BigInteger(this);
-            if (count >= Length) return new BigInteger("0");
+            if (IsZero || count == 0 || Length <= ClusterCapacity) return Clone();
+            if (count >= Length) return BigZero.Clone();
 
             var clustersShifting = count / ClusterCapacity;
             var internalShifting = count % ClusterCapacity;
@@ -363,7 +376,7 @@ namespace Type.BigInteger
         }
 
 
-        public static BigInteger operator <<(BigInteger left,  int right) => left.ShiftLeft(right);
+        public static BigInteger operator <<(BigInteger left, int right) => left.ShiftLeft(right);
 
         public static BigInteger operator >>(BigInteger left, int right) => left.ShiftRight(right);
 
