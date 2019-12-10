@@ -353,15 +353,32 @@ namespace Type.BigInteger
 
         #region Operators
 
+        #region Arithmetic
+
         public static BigInteger operator +(BigInteger left, BigInteger right) => left.Add(right);
+
+        public static BigInteger operator +(BigInteger left, int right) => left.Add(new BigInteger($"{right}"));
+
 
         public static BigInteger operator -(BigInteger left, BigInteger right) => left.Subtract(right);
 
+        public static BigInteger operator -(BigInteger left, int right) => left.Subtract(new BigInteger($"{right}"));
+
+
         public static BigInteger operator *(BigInteger left, BigInteger right) => left.Multiply(right);
+
+        public static BigInteger operator *(BigInteger left, int right) => left.Multiply(new BigInteger($"{right}"));
+
 
         public static BigInteger operator /(BigInteger left, BigInteger right)
         {
             left.Divide(right, out var quotient, out _);
+            return quotient;
+        }
+
+        public static BigInteger operator /(BigInteger left, int right)
+        {
+            left.Divide(new BigInteger($"{right}"), out var quotient, out _);
             return quotient;
         }
 
@@ -370,7 +387,21 @@ namespace Type.BigInteger
             left.Divide(right, out _, out var remainder);
             return remainder;
         }
+        public static BigInteger operator %(BigInteger left, int right)
+        {
+            left.Divide(new BigInteger($"{right}"), out _, out var remainder);
+            return remainder;
+        }
 
+        public static BigInteger operator ++(BigInteger bigInteger) => bigInteger.Add(BigOne);
+
+        public static BigInteger operator --(BigInteger bigInteger) => bigInteger.Subtract(BigOne);
+
+
+        #endregion
+
+
+        #region Comparison
 
         public static BigInteger operator <<(BigInteger left, int right) => left.ShiftLeft(right);
 
@@ -389,6 +420,8 @@ namespace Type.BigInteger
         public static bool operator <=(BigInteger left, BigInteger right) => left.CompareTo(right) <= 0;
 
         public static bool operator >=(BigInteger left, BigInteger right) => left.CompareTo(right) >= 0;
+
+        #endregion
 
         #endregion
 
