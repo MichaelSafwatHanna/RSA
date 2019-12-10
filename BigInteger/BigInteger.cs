@@ -282,8 +282,36 @@ namespace Type.BigInteger
 
         private void Divide(BigInteger other, out BigInteger quotient, out BigInteger remainder)
         {
-            throw new NotImplementedException();
+            if (other.IsZero)
+                throw new DivideByZeroException("You Can't Divide By Zero Einstein");
+
+            var signThis = IsNegative;
+            var signOther = other.IsNegative;
+            IsNegative = other.IsNegative = false;
+
+            if (this < other)
+            {
+                quotient = BigZero.Clone();
+                remainder = Clone();
+            }
+            else
+            {
+                Divide(other * 2, out quotient, out remainder);
+                quotient *= 2;
+                if (remainder >= other)
+                {
+                    quotient++;
+                    remainder -= other;
+                }
+            }
+
+            // Restore Signs
+            IsNegative = signThis;
+            other.IsNegative = signOther;
+            quotient.IsNegative = IsNegative ^ other.IsNegative;
+            remainder.IsNegative = IsNegative;
         }
+
 
         #endregion
 
