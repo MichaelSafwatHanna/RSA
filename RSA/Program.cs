@@ -7,10 +7,10 @@ namespace RSA
     {
         private static void Main(string[] args)
         {
-            var operand1 = new BigInteger("12");
-            var operand2 = new BigInteger("-12");
-            var actual = operand1 * operand2;
-            var expect = new BigInteger("-144");
+            var operand1 = new BigInteger("10");
+            var operand2 = new BigInteger("-2");
+            var actual = operand1 / operand2;
+            var expect = new BigInteger("-5");
 
             Console.WriteLine();
             Console.WriteLine($"    [OPRND1]     {operand1} | Length: {operand1.Length} | Clusters: {operand1.ClustersLength}");
