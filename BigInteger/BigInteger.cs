@@ -23,7 +23,7 @@ namespace Type.BigInteger
 
         private bool IsNegative { get; set; }
         private bool IsZero { get; set; }
-        private bool IsOne => ClustersLength == 1 && Clusters[Head] == 1;
+        private bool IsOne => !IsNegative && ClustersLength == 1 && Clusters[Head] == 1;
         private int Head { get; set; }
         private int Tail { get; set; }
         public int ClustersLength => Tail - Head + 1;
@@ -239,47 +239,43 @@ namespace Type.BigInteger
             if (other.IsOne) return Clone();
             if (ClustersLength == 1 && other.ClustersLength == 1)
             {
-                var n = Math.Min(Length, other.Length);
-                var m = (int)Math.Ceiling(n / 2.0);
+                var minLength = Math.Min(Length, other.Length);
+                var splitIndex = (int)Math.Ceiling(minLength / 2.0);
+                var splitBase = (long)Math.Pow(10, splitIndex);
 
-                // Splitting
-                var pow = (long)Math.Pow(10, m);
-                var a = Clusters[Head] / pow;
-                var b = Clusters[Head] % pow;
-                var c = other.Clusters[other.Head] / pow;
-                var d = other.Clusters[other.Head] % pow;
+                var upper1 = Clusters[Head] / splitBase;
+                var lower1 = Clusters[Head] % splitBase;
+                var upper2 = other.Clusters[other.Head] / splitBase;
+                var lower2 = other.Clusters[other.Head] % splitBase;
 
-                var ac = a * c;
-                var bd = b * d;
-                var abcd = (a + b) * (c + d);
+                var uppers = upper1 * upper2;
+                var lowers = lower1 * lower2;
+                var middle = (upper1 + lower1) * (upper2 + lower2) - uppers - lowers;
 
-                // Shifting
-                var operand1 = new BigInteger(ac + new string('0', 2 * m));
-                var operand2 = new BigInteger(abcd - bd - ac + new string('0', m));
+                var shiftedUppers = uppers + new string('0', splitIndex * 2);
+                var shiftedMiddle = middle + new string('0', splitIndex);
 
-                var result = operand1 + operand2 + new BigInteger(bd.ToString());
-                result.IsNegative = IsNegative && !other.IsNegative || !IsNegative && other.IsNegative;
+                var result = new BigInteger(shiftedUppers) + new BigInteger(shiftedMiddle) + new BigInteger($"{lowers}");
+                result.IsNegative = IsNegative ^ other.IsNegative;
                 return result;
             }
             else
             {
-                var n = Math.Min(ClustersLength, other.ClustersLength);
-                var m = (int)Math.Ceiling(n / 2.0);
+                var minLength = Math.Min(ClustersLength, other.ClustersLength);
+                var splitIndex = (int)Math.Ceiling(minLength / 2.0);
 
-                // Splitting
-                SplitClusters(m - 1, out var a, out var b);
-                other.SplitClusters(m - 1, out var c, out var d);
+                SplitClusters(splitIndex - 1, out var upper1, out var lower1);
+                other.SplitClusters(splitIndex - 1, out var upper2, out var lower2);
 
-                var ac = a * c;
-                var bd = b * d;
-                var abcd = (a + b) * (c + d);
+                var uppers = upper1 * upper2;
+                var lowers = lower1 * lower2;
+                var middle = (upper1 + lower1) * (upper2 + lower2) - uppers - lowers;
 
-                // Shifting
-                var operand1 = ac << (2 * m * ClusterCapacity);
-                var operand2 = (abcd - bd - ac) << (m * ClusterCapacity);
+                var shiftedUppers = uppers << (splitIndex * ClusterCapacity * 2);
+                var shiftedMiddle = middle << (splitIndex * ClusterCapacity);
 
-                var result = operand1 + operand2 + bd;
-                result.IsNegative = IsNegative && !other.IsNegative || !IsNegative && other.IsNegative;
+                var result = shiftedUppers + shiftedMiddle + lowers;
+                result.IsNegative = IsNegative ^ other.IsNegative;
                 return result;
             }
         }
