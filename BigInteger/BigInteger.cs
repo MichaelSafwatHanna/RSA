@@ -293,26 +293,35 @@ namespace Type.BigInteger
             var memorizedSign2 = other.IsNegative;
             IsNegative = other.IsNegative = false;
 
-            if (this < other)
-            {
-                quotient = BigZero.Clone();
-                remainder = Clone();
-            }
-            else
-            {
-                Divide(other * 2, out quotient, out remainder);
-                quotient *= 2;
-                if (remainder >= other)
-                {
-                    quotient++;
-                    remainder -= other;
-                }
-            }
+            DividePositive(other, out quotient, out remainder);
 
             // Restore Signs
             IsNegative = memorizedSign1;
             other.IsNegative = memorizedSign2;
             quotient.IsNegative = IsNegative ^ other.IsNegative;
+        }
+
+        private void DividePositive(BigInteger other, out BigInteger quotient, out BigInteger remainder)
+        {
+            if (other.IsOne)
+            {
+                quotient = Clone();
+                remainder = BigZero.Clone();
+                return;
+            }
+
+            if (this < other)
+            {
+                quotient = BigZero.Clone();
+                remainder = Clone();
+                return;
+            }
+
+            DividePositive(other * 2, out quotient, out remainder);
+            quotient *= 2;
+            if (remainder < other) return;
+            quotient++;
+            remainder -= other;
         }
 
         #endregion
