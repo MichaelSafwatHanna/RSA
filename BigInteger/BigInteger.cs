@@ -178,42 +178,26 @@ namespace Type.BigInteger
 
             BigInteger result;
 
-            if (IsNegative && !other.IsNegative)
+            if (IsNegative ^ other.IsNegative)
             {
-                other.IsNegative = true;
+                other.IsNegative ^= true; // toggle
                 result = Add(other);
-                other.IsNegative = false;
+                other.IsNegative ^= true;
                 return result;
             }
 
-            if (!IsNegative && other.IsNegative)
-            {
-                other.IsNegative = false;
-                result = Add(other);
-                other.IsNegative = true;
-                return result;
-            }
+            var comparison = CompareTo(other);
+            if (comparison == 0) return BigZero.Clone();
+            var isSmaller = comparison < 0;
+
+
+            var length = Math.Max(ClustersLength, other.ClustersLength);
+            result = new BigInteger(length) { IsNegative = isSmaller };
 
             var greater = this;
             var smaller = other;
 
-            var length = Math.Max(ClustersLength, other.ClustersLength);
-            result = new BigInteger(length);
-
-            var comparison = CompareTo(other);
-            if (comparison == 0) return BigZero.Clone();
-
-            var isSmaller = comparison < 0;
-            if (isSmaller)
-            {
-                result.IsNegative = true;
-                if (!IsNegative)
-                {
-                    greater = other;
-                    smaller = this;
-                }
-            }
-            else if (IsNegative)
+            if (isSmaller ^ IsNegative)
             {
                 greater = other;
                 smaller = this;
@@ -221,7 +205,7 @@ namespace Type.BigInteger
 
             var borrow = 0;
 
-            for (var i = greater.Head; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var operand1 = i < greater.ClustersLength ? greater.Clusters[i + greater.Head] : 0;
                 var operand2 = i < smaller.ClustersLength ? smaller.Clusters[i + smaller.Head] : 0;
