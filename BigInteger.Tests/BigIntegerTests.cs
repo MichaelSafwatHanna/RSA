@@ -40,16 +40,24 @@ namespace Type.BigInteger.Tests
 
         [DataTestMethod]
         [DynamicData(nameof(DataSet.Divide), typeof(DataSet), DynamicDataSourceType.Method)]
-        public void DivideTest(string input1, string input2, string outputQ, string outputR)
+        public void DivideTest(string input1, string input2, string quotient, string _)
         {
             var operand1 = new BigInteger(input1);
             var operand2 = new BigInteger(input2);
-            var actualQ = operand1 / operand2;
-            var actualR = operand1 % operand2;
-            var expectedQ = new BigInteger(outputQ);
-            var expectedR = new BigInteger(outputR);
-            Assert.AreEqual(expectedQ, actualQ);
-            Assert.AreEqual(expectedR, actualR);
+            var actual = operand1 / operand2;
+            var expected = new BigInteger(quotient);
+            Assert.AreEqual(expected, actual);
+        }
+
+        [DataTestMethod]
+        [DynamicData(nameof(DataSet.Divide), typeof(DataSet), DynamicDataSourceType.Method)]
+        public void ModulusTest(string input1, string input2, string _, string remainder)
+        {
+            var operand1 = new BigInteger(input1);
+            var operand2 = new BigInteger(input2);
+            var actual = operand1 % operand2;
+            var expected = new BigInteger(remainder);
+            Assert.AreEqual(expected, actual);
         }
     }
 }
