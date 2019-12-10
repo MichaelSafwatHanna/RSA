@@ -282,11 +282,11 @@ namespace Type.BigInteger
 
         private void Divide(BigInteger other, out BigInteger quotient, out BigInteger remainder)
         {
-            if (other.IsZero)
-                throw new DivideByZeroException("You Can't Divide By Zero Einstein");
+            if (other.IsZero) throw new DivideByZeroException("You Can't Divide By Zero Einstein");
 
-            var signThis = IsNegative;
-            var signOther = other.IsNegative;
+            // Save Signs
+            var memorizedSign1 = IsNegative;
+            var memorizedSign2 = other.IsNegative;
             IsNegative = other.IsNegative = false;
 
             if (this < other)
@@ -306,12 +306,10 @@ namespace Type.BigInteger
             }
 
             // Restore Signs
-            IsNegative = signThis;
-            other.IsNegative = signOther;
+            IsNegative = memorizedSign1;
+            other.IsNegative = memorizedSign2;
             quotient.IsNegative = IsNegative ^ other.IsNegative;
-            remainder.IsNegative = IsNegative;
         }
-
 
         #endregion
 
