@@ -11,6 +11,7 @@ namespace Type.BigInteger
 
         #endregion
 
+
         #region Static Members
 
         private static readonly BigInteger BigZero = new BigInteger("0");
@@ -22,7 +23,7 @@ namespace Type.BigInteger
         #region Properties
 
         private bool IsNegative { get; set; }
-        private bool IsZero { get; set; }
+        private bool IsZero => ClustersLength == 1 && Clusters[Head] == 0;
         private bool IsOne => !IsNegative && ClustersLength == 1 && Clusters[Head] == 1;
         private int Head { get; set; }
         private int Tail { get; set; }
@@ -39,7 +40,6 @@ namespace Type.BigInteger
 
         public BigInteger(string input)
         {
-            IsZero = input == "0";
             IsNegative = input[0] == '-';
             var offset = IsNegative ? 1 : 0;
 
@@ -56,6 +56,8 @@ namespace Type.BigInteger
 
             var remainder = Length % ClusterCapacity;
             if (remainder != 0) Clusters[clusterIndex] = Convert.ToInt64(input.Substring(offset, remainder));
+            RemoveEmptyClusters();
+            RecomputeLength();
         }
 
         private BigInteger(int clustersLength)
@@ -74,6 +76,14 @@ namespace Type.BigInteger
         {
             Tail--;
             Length -= ClusterCapacity;
+        }
+
+        private void RemoveEmptyClusters()
+        {
+            while (Tail > Head && Clusters[Tail] == 0)
+            {
+                RemoveLastCluster();
+            }
         }
 
         private void RecomputeLength()
@@ -100,15 +110,13 @@ namespace Type.BigInteger
             lower.RecomputeLength();
         }
 
-        private BigInteger Clone(long[] clusters = null,
-                                 bool? isNegative = null, bool? isZero = null,
+        private BigInteger Clone(long[] clusters = null, bool? isNegative = null,
                                  int? length = null, int? head = null, int? tail = null)
         {
             return new BigInteger
             {
                 Clusters = clusters ?? (long[])Clusters.Clone(),
                 IsNegative = isNegative ?? IsNegative,
-                IsZero = isZero ?? IsZero,
                 Length = length ?? Length,
                 Head = head ?? Head,
                 Tail = tail ?? Tail
@@ -157,7 +165,7 @@ namespace Type.BigInteger
             }
 
             result.Clusters[result.Tail] = carry;
-            if (carry == 0) result.RemoveLastCluster(); // Remove Empty Cluster
+            if (carry == 0) result.RemoveLastCluster();
             result.RecomputeLength();
 
             return result;
@@ -222,11 +230,7 @@ namespace Type.BigInteger
                 result.Clusters[i] = diff + borrow * MaxClusterValue;
             }
 
-            while (result.ClustersLength > 1 && result.Clusters[result.Tail] == 0)
-            {
-                result.RemoveLastCluster(); // Remove Empty Clusters
-            }
-
+            result.RemoveEmptyClusters();
             result.RecomputeLength();
 
             return result;
@@ -520,7 +524,7 @@ namespace Type.BigInteger
                 str = Clusters[i + Head].ToString().PadLeft(ClusterCapacity, '0') + str;
             }
 
-            return (IsNegative ? "-" : "") + Clusters[Tail] + str;
+            return (IsNegative && !IsZero ? "-" : "") + Clusters[Tail] + str;
         }
 
         #endregion
