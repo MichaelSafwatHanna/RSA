@@ -2,7 +2,7 @@
 
 namespace Type.BigInteger
 {
-    public class BigInteger : IComparable<BigInteger>
+    public class BigInteger : IComparable<BigInteger>, IEquatable<BigInteger>
     {
         #region Constants
 
@@ -60,11 +60,12 @@ namespace Type.BigInteger
             RecomputeLength();
         }
 
-        private BigInteger(int clustersLength)
+        private BigInteger(int clustersLength, bool isNegative = false)
         {
             Length = clustersLength * ClusterCapacity;
             Tail = clustersLength - 1;
             Clusters = new long[ClustersLength];
+            IsNegative = isNegative;
         }
 
         #endregion
@@ -92,22 +93,17 @@ namespace Type.BigInteger
             Length = (ClustersLength - 1) * ClusterCapacity + lastClusterLength;
         }
 
-        private void SplitClusters(int index, out BigInteger upper, out BigInteger lower)
+        private (BigInteger, BigInteger) SplitClusters(int index)
         {
             index += Head;
 
-            if (index >= Tail)
-            {
-                upper = BigZero.Clone();
-                lower = Clone();
-                return;
-            }
+            if (index >= Tail) return (BigZero.Clone(), Clone());
 
-            upper = Clone(head: index + 1);
+            var (upper, lower) = (Clone(head: index + 1), Clone(tail: index));
             upper.RecomputeLength();
-
-            lower = Clone(tail: index);
             lower.RecomputeLength();
+
+            return (upper, lower);
         }
 
         private BigInteger Clone(long[] clusters = null, bool? isNegative = null,
@@ -133,26 +129,11 @@ namespace Type.BigInteger
             if (IsZero) return other.Clone();
             if (other.IsZero) return Clone();
 
-            BigInteger result;
-
-            if (IsNegative && !other.IsNegative)
-            {
-                IsNegative = false;
-                result = other.Subtract(this);
-                IsNegative = true;
-                return result;
-            }
-
-            if (!IsNegative && other.IsNegative)
-            {
-                other.IsNegative = false;
-                result = Subtract(other);
-                other.IsNegative = true;
-                return result;
-            }
+            if (IsNegative && !other.IsNegative) return other.Subtract(Clone(isNegative: !IsNegative));
+            if (!IsNegative && other.IsNegative) return Subtract(other.Clone(isNegative: !other.IsNegative));
 
             var length = Math.Max(ClustersLength, other.ClustersLength);
-            result = new BigInteger(length + 1) { IsNegative = IsNegative && other.IsNegative };
+            var result = new BigInteger(length + 1, IsNegative && other.IsNegative);
             var carry = 0;
 
             for (var i = 0; i < length; i++)
@@ -176,23 +157,11 @@ namespace Type.BigInteger
             if (IsZero) return other.Clone(isNegative: false);
             if (other.IsZero) return Clone();
 
-            BigInteger result;
-
-            if (IsNegative ^ other.IsNegative)
-            {
-                other.IsNegative ^= true; // toggle
-                result = Add(other);
-                other.IsNegative ^= true;
-                return result;
-            }
+            if (IsNegative ^ other.IsNegative) return Add(other.Clone(isNegative: !other.IsNegative));
 
             var comparison = CompareTo(other);
             if (comparison == 0) return BigZero.Clone();
             var isSmaller = comparison < 0;
-
-
-            var length = Math.Max(ClustersLength, other.ClustersLength);
-            result = new BigInteger(length) { IsNegative = isSmaller };
 
             var greater = this;
             var smaller = other;
@@ -203,6 +172,8 @@ namespace Type.BigInteger
                 smaller = this;
             }
 
+            var length = Math.Max(ClustersLength, other.ClustersLength);
+            var result = new BigInteger(length, isSmaller);
             var borrow = 0;
 
             for (var i = 0; i < length; i++)
@@ -252,8 +223,8 @@ namespace Type.BigInteger
                 var minLength = Math.Min(ClustersLength, other.ClustersLength);
                 var splitIndex = (int)Math.Ceiling(minLength / 2.0);
 
-                SplitClusters(splitIndex - 1, out var upper1, out var lower1);
-                other.SplitClusters(splitIndex - 1, out var upper2, out var lower2);
+                var (upper1, lower1) = SplitClusters(splitIndex - 1);
+                var (upper2, lower2) = other.SplitClusters(splitIndex - 1);
 
                 var uppers = upper1 * upper2;
                 var lowers = lower1 * lower2;
@@ -268,44 +239,26 @@ namespace Type.BigInteger
             }
         }
 
-        private void Divide(BigInteger other, out BigInteger quotient, out BigInteger remainder)
+        private (BigInteger, BigInteger) Divide(BigInteger other)
         {
             if (other.IsZero) throw new DivideByZeroException("You Can't Divide By Zero Einstein");
 
-            // Save Signs
-            var memorizedSign1 = IsNegative;
-            var memorizedSign2 = other.IsNegative;
-            IsNegative = other.IsNegative = false;
+            var signs = (IsNegative, other.IsNegative);     // Save Signs
+            IsNegative = other.IsNegative = false;          // Clear Signs
 
-            DividePositive(other, out quotient, out remainder);
+            var (quotient, remainder) = DividePositive(other);
+            quotient.IsNegative = signs.Item1 ^ signs.Item2;
 
-            // Restore Signs
-            IsNegative = memorizedSign1;
-            other.IsNegative = memorizedSign2;
-            quotient.IsNegative = IsNegative ^ other.IsNegative;
+            (IsNegative, other.IsNegative) = signs;         // Restore Signs
+            return (quotient, remainder);
         }
 
-        private void DividePositive(BigInteger other, out BigInteger quotient, out BigInteger remainder)
+        private (BigInteger, BigInteger) DividePositive(BigInteger other)
         {
-            if (other.IsOne)
-            {
-                quotient = Clone();
-                remainder = BigZero.Clone();
-                return;
-            }
-
-            if (this < other)
-            {
-                quotient = BigZero.Clone();
-                remainder = Clone();
-                return;
-            }
-
-            DividePositive(other * 2, out quotient, out remainder);
-            quotient *= 2;
-            if (remainder < other) return;
-            quotient++;
-            remainder -= other;
+            if (other.IsOne) return (Clone(), BigZero.Clone());
+            if (this < other) return (BigZero.Clone(), Clone());
+            var (quotient, remainder) = DividePositive(other * 2);
+            return remainder < other ? (quotient * 2, remainder) : (quotient * 2 + 1, remainder - other);
         }
 
         #endregion
@@ -322,22 +275,21 @@ namespace Type.BigInteger
             var shiftBase = (long)Math.Pow(10, internalShifting);
             var split = MaxClusterValue / shiftBase;
 
-            var result = new BigInteger(ClustersLength + clustersShifting + 1);
+            var result = new BigInteger(ClustersLength + clustersShifting + 1, IsNegative);
             long carry = 0;
 
-            for (var index = 0; index < ClustersLength; index++)
+            for (var i = 0; i < ClustersLength; i++)
             {
-                var upper = Clusters[index + Head] / split;
-                var lower = Clusters[index + Head] % split;
+                var upper = Clusters[i + Head] / split;
+                var lower = Clusters[i + Head] % split;
                 var value = lower * shiftBase + carry;
-                result.Clusters[index + clustersShifting] = value;
+                result.Clusters[i + clustersShifting] = value;
                 carry = upper;
             }
 
             result.Clusters[result.Tail] = carry;
             if (carry == 0) result.RemoveLastCluster();
             result.RecomputeLength();
-            result.IsNegative = IsNegative;
 
             return result;
         }
@@ -352,21 +304,20 @@ namespace Type.BigInteger
             var split = (long)Math.Pow(10, internalShifting);
             var shiftBase = MaxClusterValue / split;
 
-            var result = new BigInteger(ClustersLength - clustersShifting);
+            var result = new BigInteger(ClustersLength - clustersShifting, IsNegative);
             long carry = 0;
 
-            for (var index = Tail; index >= clustersShifting && index < Tail; index--)
+            for (var i = Tail; i >= clustersShifting && i < Tail; i--)
             {
-                var upper = Clusters[index - Head] / split;
-                var lower = Clusters[index - Head] % split;
+                var upper = Clusters[i - Head] / split;
+                var lower = Clusters[i - Head] % split;
                 var value = upper + shiftBase * carry;
-                result.Clusters[index - Head - clustersShifting] = value;
+                result.Clusters[i - Head - clustersShifting] = value;
                 carry = lower;
-                if (value == 0) result.RemoveLastCluster();  // Remove Empty Cluster
             }
 
+            result.RemoveEmptyClusters();
             result.RecomputeLength();
-            result.IsNegative = IsNegative;
 
             return result;
         }
@@ -376,7 +327,13 @@ namespace Type.BigInteger
 
         #region Operators
 
+
         #region Arithmetic
+
+        public static BigInteger operator ++(BigInteger bigInteger) => bigInteger.Add(BigOne);
+
+        public static BigInteger operator --(BigInteger bigInteger) => bigInteger.Subtract(BigOne);
+
 
         public static BigInteger operator +(BigInteger left, BigInteger right) => left.Add(right);
 
@@ -393,43 +350,27 @@ namespace Type.BigInteger
         public static BigInteger operator *(BigInteger left, int right) => left.Multiply(new BigInteger($"{right}"));
 
 
-        public static BigInteger operator /(BigInteger left, BigInteger right)
-        {
-            left.Divide(right, out var quotient, out _);
-            return quotient;
-        }
+        public static BigInteger operator /(BigInteger left, BigInteger right) => left.Divide(right).Item1;
 
-        public static BigInteger operator /(BigInteger left, int right)
-        {
-            left.Divide(new BigInteger($"{right}"), out var quotient, out _);
-            return quotient;
-        }
+        public static BigInteger operator /(BigInteger left, int right) => left.Divide(new BigInteger($"{right}")).Item1;
 
-        public static BigInteger operator %(BigInteger left, BigInteger right)
-        {
-            left.Divide(right, out _, out var remainder);
-            return remainder;
-        }
-        public static BigInteger operator %(BigInteger left, int right)
-        {
-            left.Divide(new BigInteger($"{right}"), out _, out var remainder);
-            return remainder;
-        }
+        public static BigInteger operator %(BigInteger left, BigInteger right) => left.Divide(right).Item2;
 
-        public static BigInteger operator ++(BigInteger bigInteger) => bigInteger.Add(BigOne);
-
-        public static BigInteger operator --(BigInteger bigInteger) => bigInteger.Subtract(BigOne);
-
+        public static BigInteger operator %(BigInteger left, int right) => left.Divide(new BigInteger($"{right}")).Item2;
 
         #endregion
 
 
-        #region Comparison
+        #region Bitwise
 
         public static BigInteger operator <<(BigInteger left, int right) => left.ShiftLeft(right);
 
         public static BigInteger operator >>(BigInteger left, int right) => left.ShiftRight(right);
 
+        #endregion
+
+
+        #region Comparison
 
         public static bool operator ==(BigInteger left, BigInteger right) => left.Equals(right);
 
@@ -445,6 +386,7 @@ namespace Type.BigInteger
         public static bool operator >=(BigInteger left, BigInteger right) => left.CompareTo(right) >= 0;
 
         #endregion
+
 
         #endregion
 
@@ -480,15 +422,18 @@ namespace Type.BigInteger
 
         #region Equality Methods
 
-        private bool Equals(BigInteger other)
+        public bool Equals(BigInteger other)
         {
-            if (IsZero && other.IsZero) return true;
+            if (ReferenceEquals(null, other)) return false;
             if (ClustersLength != other.ClustersLength) return false;
+            if (IsNegative != other.IsNegative) return false;
+            if (Length != other.Length) return false;
             for (var i = 0; i < ClustersLength; i++)
             {
                 if (Clusters[i + Head] != other.Clusters[i + other.Head]) return false;
             }
-            return IsNegative == other.IsNegative && Length == other.Length;
+
+            return true;
         }
 
         public override bool Equals(object obj)
@@ -500,8 +445,15 @@ namespace Type.BigInteger
 
         public override int GetHashCode()
         {
-            var hashCode = Clusters != null ? Clusters.GetHashCode() : 0;
-            return hashCode;
+            unchecked
+            {
+                var hashCode = IsNegative.GetHashCode();
+                hashCode = (hashCode * 397) ^ Head;
+                hashCode = (hashCode * 397) ^ Tail;
+                hashCode = (hashCode * 397) ^ Length;
+                hashCode = (hashCode * 397) ^ (Clusters != null ? Clusters.GetHashCode() : 0);
+                return hashCode;
+            }
         }
 
         #endregion
