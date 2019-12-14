@@ -23,11 +23,10 @@ namespace Type.BigInteger
         #region Properties
 
         private bool IsNegative { get; set; }
-        private bool IsZero => ClustersLength == 1 && Clusters[Head] == 0;
-        private bool IsOne => !IsNegative && ClustersLength == 1 && Clusters[Head] == 1;
-        private int Head { get; set; }
-        private int Tail { get; set; }
-        public int ClustersLength => Tail - Head + 1;
+        private bool IsZero => ClustersLength == 1 && Clusters[0] == 0;
+        private bool IsOne => !IsNegative && ClustersLength == 1 && Clusters[0] == 1;
+        public int ClustersLength { get; private set; }
+        private int Tail => ClustersLength - 1;
         public int Length { get; private set; }
         private long[] Clusters { get; set; }
 
@@ -44,11 +43,11 @@ namespace Type.BigInteger
             var offset = IsNegative ? 1 : 0;
 
             Length = input.Length - offset;
-            Tail = (int)Math.Ceiling((double)Length / ClusterCapacity) - 1;
+            ClustersLength = (int)Math.Ceiling((double)Length / ClusterCapacity);
             Clusters = new long[ClustersLength];
 
             var clusterIndex = 0;
-            for (var i = input.Length - ClusterCapacity - offset; i >= 0; i -= ClusterCapacity)
+            for (var i = Length - ClusterCapacity; i >= 0; i -= ClusterCapacity)
             {
                 Clusters[clusterIndex] = Convert.ToInt64(input.Substring(i + offset, ClusterCapacity));
                 clusterIndex++;
@@ -63,7 +62,7 @@ namespace Type.BigInteger
         private BigInteger(int clustersLength, bool isNegative = false)
         {
             Length = clustersLength * ClusterCapacity;
-            Tail = clustersLength - 1;
+            ClustersLength = clustersLength;
             Clusters = new long[ClustersLength];
             IsNegative = isNegative;
         }
@@ -75,13 +74,13 @@ namespace Type.BigInteger
 
         private void RemoveLastCluster()
         {
-            Tail--;
+            ClustersLength--;
             Length -= ClusterCapacity;
         }
 
         private void RemoveEmptyClusters()
         {
-            while (Tail > Head && Clusters[Tail] == 0)
+            while (ClustersLength > 1 && Clusters[Tail] == 0)
             {
                 RemoveLastCluster();
             }
@@ -90,33 +89,38 @@ namespace Type.BigInteger
         private void RecomputeLength()
         {
             var lastClusterLength = Clusters[Tail].ToString().Length;
-            Length = (ClustersLength - 1) * ClusterCapacity + lastClusterLength;
+            Length = (Tail) * ClusterCapacity + lastClusterLength;
         }
 
         private (BigInteger, BigInteger) SplitClusters(int index)
         {
-            index += Head;
+            if (index >= ClustersLength || ClustersLength == 1) return (BigZero.Clone(), Clone());
 
-            if (index >= Tail) return (BigZero.Clone(), Clone());
-
-            var (upper, lower) = (Clone(head: index + 1), Clone(tail: index));
+            var (upper, lower) = (Clone(start: index + 1), Clone(end: index));
             upper.RecomputeLength();
             lower.RecomputeLength();
 
             return (upper, lower);
         }
 
-        private BigInteger Clone(long[] clusters = null, bool? isNegative = null,
-                                 int? length = null, int? head = null, int? tail = null)
+        private BigInteger Clone(bool? isNegative = null, int? start = null, int? end = null)
         {
-            return new BigInteger
+            var newStart = start ?? 0;
+            var newEnd = end ?? Tail;
+            var clustersLength = newEnd - newStart + 1;
+            var bigInteger = new BigInteger
             {
-                Clusters = clusters ?? (long[])Clusters.Clone(),
                 IsNegative = isNegative ?? IsNegative,
-                Length = length ?? Length,
-                Head = head ?? Head,
-                Tail = tail ?? Tail
+                ClustersLength = clustersLength,
+                Clusters = new long[clustersLength],
+                Length = Length
             };
+            for (var i = 0; i < clustersLength; i++)
+            {
+                bigInteger.Clusters[i] = Clusters[i + newStart];
+            }
+
+            return bigInteger;
         }
 
         #endregion
@@ -129,8 +133,8 @@ namespace Type.BigInteger
             if (IsZero) return other.Clone();
             if (other.IsZero) return Clone();
 
-            if (IsNegative && !other.IsNegative) return other.Subtract(Clone(isNegative: !IsNegative));
-            if (!IsNegative && other.IsNegative) return Subtract(other.Clone(isNegative: !other.IsNegative));
+            if (IsNegative && !other.IsNegative) return other.Subtract(Clone(!IsNegative));
+            if (!IsNegative && other.IsNegative) return Subtract(other.Clone(!other.IsNegative));
 
             var length = Math.Max(ClustersLength, other.ClustersLength);
             var result = new BigInteger(length + 1, IsNegative && other.IsNegative);
@@ -138,8 +142,8 @@ namespace Type.BigInteger
 
             for (var i = 0; i < length; i++)
             {
-                var operand1 = i < ClustersLength ? Clusters[i + Head] : 0;
-                var operand2 = i < other.ClustersLength ? other.Clusters[i + other.Head] : 0;
+                var operand1 = i <= Tail ? Clusters[i] : 0;
+                var operand2 = i <= other.Tail ? other.Clusters[i] : 0;
                 var sum = operand1 + operand2 + carry;
                 carry = sum >= MaxClusterValue ? 1 : 0;
                 result.Clusters[i] = sum % MaxClusterValue;
@@ -154,10 +158,10 @@ namespace Type.BigInteger
 
         private BigInteger Subtract(BigInteger other)
         {
-            if (IsZero) return other.Clone(isNegative: false);
+            if (IsZero) return other.Clone(false);
             if (other.IsZero) return Clone();
 
-            if (IsNegative ^ other.IsNegative) return Add(other.Clone(isNegative: !other.IsNegative));
+            if (IsNegative ^ other.IsNegative) return Add(other.Clone(!other.IsNegative));
 
             var comparison = CompareTo(other);
             if (comparison == 0) return BigZero.Clone();
@@ -178,8 +182,8 @@ namespace Type.BigInteger
 
             for (var i = 0; i < length; i++)
             {
-                var operand1 = i < greater.ClustersLength ? greater.Clusters[i + greater.Head] : 0;
-                var operand2 = i < smaller.ClustersLength ? smaller.Clusters[i + smaller.Head] : 0;
+                var operand1 = i <= greater.Tail ? greater.Clusters[i] : 0;
+                var operand2 = i <= smaller.Tail ? smaller.Clusters[i] : 0;
                 var diff = operand1 - operand2 - borrow;
                 borrow = diff < 0 ? 1 : 0;
                 result.Clusters[i] = diff + borrow * MaxClusterValue;
@@ -202,10 +206,10 @@ namespace Type.BigInteger
                 var splitIndex = (int)Math.Ceiling(minLength / 2.0);
                 var splitBase = (long)Math.Pow(10, splitIndex);
 
-                var upper1 = Clusters[Head] / splitBase;
-                var lower1 = Clusters[Head] % splitBase;
-                var upper2 = other.Clusters[other.Head] / splitBase;
-                var lower2 = other.Clusters[other.Head] % splitBase;
+                var upper1 = Clusters[0] / splitBase;
+                var lower1 = Clusters[0] % splitBase;
+                var upper2 = other.Clusters[0] / splitBase;
+                var lower2 = other.Clusters[0] % splitBase;
 
                 var uppers = upper1 * upper2;
                 var lowers = lower1 * lower2;
@@ -280,8 +284,8 @@ namespace Type.BigInteger
 
             for (var i = 0; i < ClustersLength; i++)
             {
-                var upper = Clusters[i + Head] / split;
-                var lower = Clusters[i + Head] % split;
+                var upper = Clusters[i] / split;
+                var lower = Clusters[i] % split;
                 var value = lower * shiftBase + carry;
                 result.Clusters[i + clustersShifting] = value;
                 carry = upper;
@@ -307,12 +311,12 @@ namespace Type.BigInteger
             var result = new BigInteger(ClustersLength - clustersShifting, IsNegative);
             long carry = 0;
 
-            for (var i = Tail; i >= clustersShifting && i < Tail; i--)
+            for (var i = Tail; i >= clustersShifting; i--)
             {
-                var upper = Clusters[i - Head] / split;
-                var lower = Clusters[i - Head] % split;
+                var upper = Clusters[i] / split;
+                var lower = Clusters[i] % split;
                 var value = upper + shiftBase * carry;
-                result.Clusters[i - Head - clustersShifting] = value;
+                result.Clusters[i - clustersShifting] = value;
                 carry = lower;
             }
 
@@ -409,10 +413,10 @@ namespace Type.BigInteger
             if (!IsNegative && other.IsNegative) return 1;
             if (ClustersLength > other.ClustersLength) return IsNegative ? -1 : 1;
             if (ClustersLength < other.ClustersLength) return IsNegative ? 1 : -1;
-            for (var i = ClustersLength - 1; i >= 0; i--)
+            for (var i = Tail; i >= 0; i--)
             {
-                if (Clusters[i + Head] > other.Clusters[i + other.Head]) return IsNegative ? -1 : 1;
-                if (Clusters[i + Head] < other.Clusters[i + other.Head]) return IsNegative ? 1 : -1;
+                if (Clusters[i] > other.Clusters[i]) return IsNegative ? -1 : 1;
+                if (Clusters[i] < other.Clusters[i]) return IsNegative ? 1 : -1;
             }
             return 0;
         }
@@ -430,7 +434,7 @@ namespace Type.BigInteger
             if (Length != other.Length) return false;
             for (var i = 0; i < ClustersLength; i++)
             {
-                if (Clusters[i + Head] != other.Clusters[i + other.Head]) return false;
+                if (Clusters[i] != other.Clusters[i]) return false;
             }
 
             return true;
@@ -448,8 +452,7 @@ namespace Type.BigInteger
             unchecked
             {
                 var hashCode = IsNegative.GetHashCode();
-                hashCode = (hashCode * 397) ^ Head;
-                hashCode = (hashCode * 397) ^ Tail;
+                hashCode = (hashCode * 397) ^ ClustersLength;
                 hashCode = (hashCode * 397) ^ Length;
                 hashCode = (hashCode * 397) ^ (Clusters != null ? Clusters.GetHashCode() : 0);
                 return hashCode;
@@ -464,9 +467,9 @@ namespace Type.BigInteger
         public override string ToString()
         {
             var str = "";
-            for (var i = 0; i < ClustersLength - 1; i++)
+            for (var i = 0; i < Tail; i++)
             {
-                str = Clusters[i + Head].ToString().PadLeft(ClusterCapacity, '0') + str;
+                str = Clusters[i].ToString().PadLeft(ClusterCapacity, '0') + str;
             }
 
             return (IsNegative && !IsZero ? "-" : "") + Clusters[Tail] + str;
