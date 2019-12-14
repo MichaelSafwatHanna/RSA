@@ -261,8 +261,9 @@ namespace Type.BigInteger
         {
             if (other.IsOne) return (Clone(), BigZero.Clone());
             if (this < other) return (BigZero.Clone(), Clone());
-            var (quotient, remainder) = DividePositive(other * 2);
-            return remainder < other ? (quotient * 2, remainder) : (quotient * 2 + 1, remainder - other);
+            var (quotient, remainder) = DividePositive(other + other);
+            quotient += quotient;
+            return remainder < other ? (quotient, remainder) : (++quotient, remainder - other);
         }
 
         #endregion
