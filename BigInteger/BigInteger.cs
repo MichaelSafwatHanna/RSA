@@ -266,6 +266,17 @@ namespace Type.BigInteger
             return remainder < other ? (quotient, remainder) : (++quotient, remainder - other);
         }
 
+        public BigInteger ModOfPower(BigInteger power, BigInteger mod)
+        {
+            if (IsZero) return BigZero.Clone();
+            if (power.IsZero) return BigOne.Clone();
+            if (power.IsOne) return Clone();
+            var (quotient, reminder) = power.Divide(new BigInteger("2"));
+            var result = ModOfPower(quotient, mod) % mod;
+            result = (result * result) % mod;
+            return reminder.IsZero ? result : result * (this % mod) % mod;
+        }
+
         #endregion
 
 
