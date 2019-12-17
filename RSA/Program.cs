@@ -1,7 +1,7 @@
 ﻿using System;
 using Type.BigInteger;
 
-namespace RSA
+namespace Crypto.RSA
 {
     internal static class Program
     {
