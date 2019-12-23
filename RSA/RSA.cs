@@ -1,12 +1,10 @@
 ﻿using System;
 using Type.BigInteger;
-using static System.Int32;
 
 namespace Crypto.RSA
 {
     public static class RSA
     {
-        
         public static BigInteger Encrypt(BigInteger n, BigInteger e, BigInteger m)
         {
             return m.ModOfPower(e, n);
@@ -111,7 +109,7 @@ namespace Crypto.RSA
 
         }
 
-        public class Encoder
+        public static class Encoder
         {
             private const int MaxAsciiLength = 3;
 
