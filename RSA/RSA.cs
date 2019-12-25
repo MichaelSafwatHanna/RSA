@@ -1,18 +1,19 @@
 ﻿using System;
+using Crypto.RSA.Keys;
 using Type.BigInteger;
 
 namespace Crypto.RSA
 {
     public static class RSA
     {
-        public static BigInteger Encrypt(BigInteger n, BigInteger e, BigInteger m)
+        public static BigInteger Encrypt(PublicKey key, BigInteger message)
         {
-            return m.ModOfPower(e, n);
+            return message.ModOfPower(key.Exponent, key.Modulus);
         }
 
-        public static BigInteger Decrypt(BigInteger n, BigInteger d, BigInteger m)
+        public static BigInteger Decrypt(PrivateKey key, BigInteger encryptedMessage)
         {
-            return m.ModOfPower(d, n);
+            return encryptedMessage.ModOfPower(key.Exponent, key.Modulus);
         }
 
         public static class KeyGenerator
