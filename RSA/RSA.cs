@@ -1,4 +1,5 @@
 ﻿using System;
+using Crypto.RSA.Encoders;
 using Crypto.RSA.Keys;
 using Type.BigInteger;
 
@@ -14,6 +15,16 @@ namespace Crypto.RSA
         public static BigInteger Decrypt(PrivateKey key, BigInteger encryptedMessage)
         {
             return encryptedMessage.ModOfPower(key.Exponent, key.Modulus);
+        }
+
+        public static BigInteger Encrypt(PublicKey key, string message, IEncoder encoder)
+        {
+            return Encrypt(key, new BigInteger(encoder.GetBytes(message)));
+        }
+
+        public static string Decrypt(PrivateKey key, BigInteger encryptedMessage, IEncoder encoder)
+        {
+            return encoder.GetString(Decrypt(key, encryptedMessage).ToString());
         }
 
         public static class KeyGenerator
