@@ -1,6 +1,6 @@
 ﻿using System;
+using System.IO;
 using Crypto.RSA;
-using Crypto.RSA.Encoders;
 using Crypto.RSA.Keys;
 using Type.BigInteger;
 
@@ -8,72 +8,111 @@ namespace Demo
 {
     internal class Program
     {
+        private const string SampleInputFile = @"../../../Cases/SampleRSA.txt";
+        private const string SampleOutputFile = @"../../../Output/SampleOutput.txt";
+        private const string CompleteInputFile = @"../../../Cases/TestRSA.txt";
+        private const string CompleteOutputFile = @"../../../Output/CompleteOutput.txt";
+
         private static void Main(string[] args)
         {
-            // Number Encryption Test
-            const string message1 = "123456";
-            var publicKey1 = new PublicKey(new BigInteger("17"), new BigInteger("3658315382137043"));
-            var encryptedMessage = RSA.Encrypt(publicKey1, new BigInteger(message1));
-
-            var privateKey = new PrivateKey(new BigInteger("3012726845747393"), new BigInteger("3658315382137043"));
-            var decryptedMessage = RSA.Decrypt(privateKey, encryptedMessage);
-
-            CaseLog("#1. Number Encryption", message1, publicKey1, encryptedMessage.ToString(), privateKey,
-                decryptedMessage.ToString());
-
-            // String Encryption Test
-            const string message2 = "MMMMY";
-            var publicKey2 = new PublicKey(new BigInteger("17"), new BigInteger("3658315382137043"));
-            encryptedMessage = RSA.Encrypt(publicKey2, message2, AsciiEncoder.Instance);
-
-            privateKey = new PrivateKey(new BigInteger("3012726845747393"), new BigInteger("3658315382137043"));
-            var decryptedMessage2 = RSA.Decrypt(privateKey, encryptedMessage, AsciiEncoder.Instance);
-
-            CaseLog("#2. String Encryption", message2, publicKey2, encryptedMessage.ToString(), privateKey,
-                decryptedMessage2);
+            SampleTest();
+            CompleteTest();
         }
 
-        private static void CaseLog(string title, string message, Key publicKey, string encryptedMessage,
-            Key privateKey, string decryptedMessage)
+        private static void SampleTest()
         {
-            Console.WriteLine();
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"        {title}");
-            Console.WriteLine();
-            Console.ForegroundColor = ConsoleColor.Blue;
-            Console.Write("        [MESSAGE]");
-            Console.ResetColor();
-            Console.WriteLine($"           {message}");
+            var inFileStream = new FileStream(SampleInputFile, FileMode.Open);
+            var inStreamReader = new StreamReader(inFileStream);
+            var outFileStream = new FileStream(SampleOutputFile, FileMode.Create);
+            var outStreamWriter = new StreamWriter(outFileStream);
 
-            Console.WriteLine();
+            var cases = int.Parse(inStreamReader.ReadLine());
+            for (var i = 0; i < cases; i++)
+            {
+                var n = inStreamReader.ReadLine();
+                var e = inStreamReader.ReadLine();
+                var m = inStreamReader.ReadLine();
+                var eFlag = inStreamReader.ReadLine();
 
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("        [PUBLIC KEY]");
-            Console.ResetColor();
+                if (eFlag == "0")
+                {
+                    var ticksBefore = Environment.TickCount;
+                    var actual = EncryptTest(n, e, m);
+                    var ticksAfter = Environment.TickCount;
+                    outStreamWriter.WriteLine(actual);
+                    var totalMs = ticksAfter - ticksBefore;
+                    outStreamWriter.WriteLine($"[{totalMs / 1000:00}.{totalMs % 1000} s]");
+                }
+                else
+                {
+                    var ticksBefore = Environment.TickCount;
+                    var actual = DecryptTest(n, e, m);
+                    var ticksAfter = Environment.TickCount;
+                    outStreamWriter.WriteLine(actual);
+                    var totalMs = ticksAfter - ticksBefore;
+                    outStreamWriter.WriteLine($"[{totalMs / 1000:00}.{totalMs % 1000} s]");
+                }
+            }
 
-            Console.WriteLine($"        Exponent: {publicKey.Exponent} | Modulus: {publicKey.Modulus}");
-            Console.WriteLine();
+            inStreamReader.Close();
+            inFileStream.Close();
+            outStreamWriter.Close();
+            outFileStream.Close();
+        }
 
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("        [ENCRYPTION]");
-            Console.ResetColor();
+        private static void CompleteTest()
+        {
+            var inFileStream = new FileStream(CompleteInputFile, FileMode.Open);
+            var inStreamReader = new StreamReader(inFileStream);
+            var outFileStream = new FileStream(CompleteOutputFile, FileMode.Create);
+            var outStreamWriter = new StreamWriter(outFileStream);
 
-            Console.WriteLine($"        Encrypted Message: {encryptedMessage}");
-            Console.WriteLine();
+            var cases = int.Parse(inStreamReader.ReadLine());
+            for (var i = 0; i < cases; i++)
+            {
+                var n = inStreamReader.ReadLine();
+                var e = inStreamReader.ReadLine();
+                var m = inStreamReader.ReadLine();
+                var eFlag = inStreamReader.ReadLine();
 
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("        [PRIVATE KEY]");
-            Console.ResetColor();
+                if (eFlag == "0")
+                {
+                    var ticksBefore = Environment.TickCount;
+                    var actual = EncryptTest(n, e, m);
+                    var ticksAfter = Environment.TickCount;
+                    outStreamWriter.WriteLine(actual);
+                    var totalMs = ticksAfter - ticksBefore;
+                    outStreamWriter.WriteLine($"[{totalMs / 1000:00}.{totalMs % 1000} s]");
+                }
+                else
+                {
+                    var ticksBefore = Environment.TickCount;
+                    var actual = DecryptTest(n, e, m);
+                    var ticksAfter = Environment.TickCount;
+                    outStreamWriter.WriteLine(actual);
+                    var totalMs = ticksAfter - ticksBefore;
+                    outStreamWriter.WriteLine($"[{totalMs / 1000:00}.{totalMs % 1000} s]");
+                }
+            }
 
-            Console.WriteLine($"       Exponent: {privateKey.Exponent} | Modulus: {privateKey.Modulus}");
-            Console.WriteLine();
+            inStreamReader.Close();
+            inFileStream.Close();
+            outStreamWriter.Close();
+            outFileStream.Close();
+        }
 
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("        [DECRYPTION]");
-            Console.ResetColor();
+        private static BigInteger EncryptTest(string n, string e, string m)
+        {
+            var key = new PublicKey(new BigInteger(e), new BigInteger(n));
+            var message = new BigInteger(m);
+            return RSA.Encrypt(key, message);
+        }
 
-            Console.WriteLine($"        Decrypted Message: {decryptedMessage}");
-            Console.WriteLine();
+        private static BigInteger DecryptTest(string n, string d, string em)
+        {
+            var key = new PrivateKey(new BigInteger(d), new BigInteger(n));
+            var encryptedMessage = new BigInteger(em);
+            return RSA.Decrypt(key, encryptedMessage);
         }
     }
 }
